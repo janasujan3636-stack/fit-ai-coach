@@ -1,0 +1,17 @@
+/* Keep all your original CSS here */
+/* Add this to ensure React components handle layout well: */
+.app-container {
+  display: flex;
+  justify-content: center;
+  background: #f1f5f9;
+  min-height: 100vh;
+}
+
+.dashboard {
+  padding-bottom: 80px; /* Room for bottom nav */
+}
+
+form.row {
+  display: flex;
+  width: 100%;
+}
