@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Home, FitnessCenter, Restaurant, History, PlayCircleOutline, Timer, EmojiEvents, Save, CheckCircle, ListAlt, Star, Person, Close, Menu, LocalFireDepartment, ShowChart, TrendingUp, TrendingDown, Fastfood, LocalDrink, Info, CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import '@tensorflow/tfjs-backend-webgl';
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 const EXERCISE_DATA = {
   home: [
     { name: "Pushups", avoid: ["Shoulder"], tip: "Keep elbows at 45 degrees", embedId: "IODxDxX7oi4", burn: 5 },
@@ -40,6 +40,42 @@ const FOOD_DB = {
   dinner: { "Boiled Eggs": 78, "Tofu": 76, "Sweet Potato": 86, "Quinoa": 120, "Mixed Veg": 100, "Chicken Soup": 150, "Broccoli": 34, "Cottage Cheese": 98, "Soy Milk": 100 }
 };
 
+const WEEKLY_PLAN = {
+  beginner: {
+    Monday: { muscle: "Full Body (Light)", diet: "High Protein, Moderate Carbs", exercises: "Pushups, Bodyweight Squats" },
+    Tuesday: { muscle: "Core & Stability", diet: "Low Carbs, High Fiber", exercises: "Plank, Crunches" },
+    Wednesday: { muscle: "Active Recovery", diet: "Maintenance Calories", exercises: "Light Stretching, Walking" },
+    Thursday: { muscle: "Upper Body Focus", diet: "High Protein", exercises: "Pushups, Superman" },
+    Friday: { muscle: "Lower Body Focus", diet: "High Carbs (Energy)", exercises: "Bodyweight Squats, Glute Bridges" },
+    nextLevel: "Reach 500 Fitness Points to unlock Intermediate Phase."
+  },
+  intermediate: {
+    Monday: { muscle: "Chest & Triceps", diet: "Caloric Surplus (Muscle Building)", exercises: "Bench Press, Tricep Extensions" },
+    Tuesday: { muscle: "Back & Biceps", diet: "High Protein, Clean Fats", exercises: "Deadlifts, Bicep Curls" },
+    Wednesday: { muscle: "Legs & Core", diet: "High Carbs", exercises: "Leg Press, Mountain Climbers" },
+    Thursday: { muscle: "Shoulders", diet: "High Protein", exercises: "Shoulder Press, Lateral Raises" },
+    Friday: { muscle: "Full Body HIIT", diet: "Low Carbs, High Protein", exercises: "Burpees, Jumping Jacks" },
+    nextLevel: "Reach 1500 Fitness Points to unlock Pro Phase."
+  },
+  pro: {
+    Monday: { muscle: "Push Day (Heavy)", diet: "High Carb, High Protein", exercises: "Heavy Bench, Incline Bench" },
+    Tuesday: { muscle: "Pull Day (Heavy)", diet: "High Protein, Clean Fats", exercises: "Heavy Deadlifts, Seated Rows" },
+    Wednesday: { muscle: "Leg Day (Heavy)", diet: "Max Carbs for Recovery", exercises: "Heavy Leg Press, Lunges" },
+    Thursday: { muscle: "Push Day (Hypertrophy)", diet: "High Protein", exercises: "Diamond Pushups, Tricep Ext" },
+    Friday: { muscle: "Pull Day (Hypertrophy)", diet: "Balanced Macros", exercises: "Lat Pulldowns, Bicep Curls" },
+    nextLevel: "You are at the top level! Keep maintaining your Pro status."
+  }
+};
+
+const MOTIVATION_QUOTES = [
+  "Sweat is just fat crying. Keep it up!",
+  "Consistency is key. You nailed it today.",
+  "Every rep counts. Proud of you!",
+  "Fuel your body, crush your goals!",
+  "You're one step closer to your dream physique.",
+  "Discipline bridges the gap between goals and accomplishment."
+];
+
 const COLORS = { bg: '#000000', card: '#111111', text: '#ffffff', textDim: '#888888', primary: '#00e676', border: '#222222', inputBg: '#1a1a1a', danger: '#ff4444' };
 
 export default function App() {
@@ -56,7 +92,7 @@ export default function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const repData = useRef({ isDown: false, count: 0 });
-  // --- ADDED: VOICE FEEDBACK LOGIC ---
+
 // --- ADDED: VOICE FEEDBACK LOGIC ---
   const speakFeedback = (text) => {
     if ('speechSynthesis' in window) {
@@ -90,6 +126,17 @@ export default function App() {
     let detector;
     let animationFrameId;
 
+    // 1. ADD THIS MATH FUNCTION TO CALCULATE JOINT ANGLES
+    const calculateAngle = (pointA, pointB, pointC) => {
+      if (!pointA || !pointB || !pointC) return 0;
+      const radians = Math.atan2(pointC.y - pointB.y, pointC.x - pointB.x) - Math.atan2(pointA.y - pointB.y, pointA.x - pointB.x);
+      let angle = Math.abs((radians * 180.0) / Math.PI);
+      if (angle > 180.0){ 
+        angle = 360.0 - angle;
+      }
+      return angle;
+    };
+
     const runPoseDetection = async () => {
       try {
         setAiFeedback("Loading AI Engine...");
@@ -112,47 +159,161 @@ export default function App() {
             if (poses.length > 0) {
               const keypoints = poses[0].keypoints;
 
-              // 1. DRAW SKELETON
+              // 1. DRAW SKELETON & LIVE ANGLE DEBUGGER
               const connections = [[5,7], [7,9], [6,8], [8,10], [5,6], [5,11], [6,12], [11,12], [11,13], [13,15], [12,14], [14,16]];
               ctx.strokeStyle = '#00e676'; // Neon Green lines
               ctx.lineWidth = 4;
               connections.forEach(([i, j]) => {
-                // Lowered the confidence threshold slightly to 0.25 to catch faster movements
-                if (keypoints[i].score > 0.25 && keypoints[j].score > 0.25) {
-                  ctx.beginPath();
-                  ctx.moveTo(keypoints[i].x, keypoints[i].y);
-                  ctx.lineTo(keypoints[j].x, keypoints[j].y);
-                  ctx.stroke();
+                if (keypoints[i].score > 0.3 && keypoints[j].score > 0.3) {
+                  ctx.beginPath(); ctx.moveTo(keypoints[i].x, keypoints[i].y); ctx.lineTo(keypoints[j].x, keypoints[j].y); ctx.stroke();
                 }
               });
 
               ctx.fillStyle = '#ffd700'; // Yellow Dots
               keypoints.forEach(kp => {
-                if (kp.score > 0.25) {
+                if (kp.score > 0.3) {
                   ctx.beginPath(); ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI); ctx.fill();
                 }
               });
 
-              // 2. AUTO REP COUNTER
-              const shoulder = keypoints[5]; // Left Shoulder
-              const elbow = keypoints[7];    // Left Elbow
+              // --- NEW: PRINT LIVE ANGLES ON SCREEN ---
+              ctx.fillStyle = '#fff';
+              ctx.font = 'bold 18px Arial';
+              
+              // Print Left Elbow Angle
+              if (keypoints[5]?.score > 0.3 && keypoints[7]?.score > 0.3 && keypoints[9]?.score > 0.3) {
+                const elbowAng = calculateAngle(keypoints[5], keypoints[7], keypoints[9]);
+                ctx.fillText(`${Math.round(elbowAng)}°`, keypoints[7].x + 15, keypoints[7].y);
+              }
+              // Print Left Knee Angle
+              if (keypoints[11]?.score > 0.3 && keypoints[13]?.score > 0.3 && keypoints[15]?.score > 0.3) {
+                const kneeAng = calculateAngle(keypoints[11], keypoints[13], keypoints[15]);
+                ctx.fillText(`${Math.round(kneeAng)}°`, keypoints[13].x + 15, keypoints[13].y);
+              }
 
-              // Make sure AI can actually see your shoulder and elbow!
-              if (shoulder && elbow && shoulder.score > 0.25 && elbow.score > 0.25) {
-                if (shoulder.y > elbow.y - 20) {
-                  if (!repData.current.isDown) {
-                    repData.current.isDown = true;
-                    setAiFeedback("Good depth, push up!");
+              // 2. COMPREHENSIVE AI EXERCISE TRACKER (Covers all DB Exercises)
+              const exName = activeAiExercise?.name?.toLowerCase() || "";
+
+              // Grab the Left-side joints (standard for mirrored webcams)
+              const nose = keypoints[0];
+              const shoulder = keypoints[5];
+              const elbow = keypoints[7];
+              const wrist = keypoints[9];
+              const hip = keypoints[11];
+              const knee = keypoints[13];
+              const ankle = keypoints[15];
+
+              // ==========================================
+              // GROUP 1: SQUATTING (Squats, Lunges, Leg Press)
+              // Tracks: Hip -> Knee -> Ankle
+              // ==========================================
+              if (exName.includes('squat') || (exName.includes('leg') && exName.includes('press')) || exName.includes('lunge')) {
+                if (hip?.score > 0.3 && knee?.score > 0.3 && ankle?.score > 0.3) {
+                  const kneeAngle = calculateAngle(hip, knee, ankle);
+                  if (kneeAngle < 100) { // Deep bend
+                    if (!repData.current.isDown) { repData.current.isDown = true; setAiFeedback("Good depth, drive up!"); }
+                  } else if (kneeAngle > 160) { // Standing up fully
+                    if (repData.current.isDown) {
+                      repData.current.isDown = false; repData.current.count += 1;
+                      setAiReps(repData.current.count); speakFeedback(repData.current.count.toString());
+                      setAiFeedback("Perfect lower body rep!");
+                    }
+                  } else if (repData.current.isDown && kneeAngle > 110 && kneeAngle < 140) {
+                     setAiFeedback("Don't stop halfway, push up!");
                   }
-                } else {
-                  if (repData.current.isDown && shoulder.y < elbow.y - 50) {
-                    repData.current.isDown = false;
-                    repData.current.count += 1;
-                    setAiReps(repData.current.count);
-                    speakFeedback(repData.current.count.toString());
-                    setAiFeedback("Perfect rep!");
+                } else setAiFeedback("Step back! I need to see your hips and knees.");
+              }
+
+              // ==========================================
+              // GROUP 2: PUSHING (Pushups, Bench, Shoulder Press, Triceps, Diamond)
+              // Tracks: Shoulder -> Elbow -> Wrist
+              // ==========================================
+              else if (exName.includes('push') || exName.includes('bench') || exName.includes('shoulder') || exName.includes('tricep')) {
+                if (shoulder?.score > 0.3 && elbow?.score > 0.3 && wrist?.score > 0.3) {
+                  const elbowAngle = calculateAngle(shoulder, elbow, wrist);
+                  if (elbowAngle < 90) { // Arms fully bent
+                    if (!repData.current.isDown) { repData.current.isDown = true; setAiFeedback("Good stretch, push away!"); }
+                  } else if (elbowAngle > 150) { // Arms locked out
+                    if (repData.current.isDown) {
+                      repData.current.isDown = false; repData.current.count += 1;
+                      setAiReps(repData.current.count); speakFeedback(repData.current.count.toString());
+                      setAiFeedback("Perfect press!");
+                    }
+                  } else if (repData.current.isDown && elbowAngle > 100 && elbowAngle < 140) {
+                     setAiFeedback("Lock out your elbows!");
                   }
-                }
+                } else setAiFeedback("Adjust camera! I need to see your arms fully.");
+              }
+
+              // ==========================================
+              // GROUP 3: PULLING (Bicep Curls, Lat Pulldowns)
+              // Tracks: Shoulder -> Elbow -> Wrist (Reverse Logic)
+              // ==========================================
+              else if (exName.includes('curl') || exName.includes('pulldown')) {
+                if (shoulder?.score > 0.3 && elbow?.score > 0.3 && wrist?.score > 0.3) {
+                  const elbowAngle = calculateAngle(shoulder, elbow, wrist);
+                  if (elbowAngle < 60) { // Arms fully curled up
+                    if (!repData.current.isDown) { repData.current.isDown = true; setAiFeedback("Max contraction, return slowly."); }
+                  } else if (elbowAngle > 150) { // Arms extended back down
+                    if (repData.current.isDown) {
+                      repData.current.isDown = false; repData.current.count += 1;
+                      setAiReps(repData.current.count); speakFeedback(repData.current.count.toString());
+                      setAiFeedback("Perfect pull!");
+                    }
+                  }
+                } else setAiFeedback("I need to see your elbows and wrists.");
+              }
+
+              // ==========================================
+              // GROUP 4: HINGING (Deadlifts, Glute Bridges)
+              // Tracks: Shoulder -> Hip -> Knee
+              // ==========================================
+              else if (exName.includes('deadlift') || exName.includes('bridge')) {
+                if (shoulder?.score > 0.3 && hip?.score > 0.3 && knee?.score > 0.3) {
+                  const hipAngle = calculateAngle(shoulder, hip, knee);
+                  if (hipAngle < 110) { // Bent over / hips down
+                    if (!repData.current.isDown) { repData.current.isDown = true; setAiFeedback("Keep back straight, drive hips!"); }
+                  } else if (hipAngle > 165) { // Standing tall / hips extended
+                    if (repData.current.isDown) {
+                      repData.current.isDown = false; repData.current.count += 1;
+                      setAiReps(repData.current.count); speakFeedback(repData.current.count.toString());
+                      setAiFeedback("Great hip extension!");
+                    }
+                  }
+                } else setAiFeedback("Step back! I need to see your shoulders to knees.");
+              }
+
+              // ==========================================
+              // GROUP 5: FULL BODY / CARDIO (Jumping Jacks, Burpees, Crunches, Climbers)
+              // Tracks: Wrist position relative to head/hips
+              // ==========================================
+              else if (exName.includes('crunch') || exName.includes('burpee') || exName.includes('jack') || exName.includes('climber')) {
+                if (wrist?.score > 0.3 && hip?.score > 0.3 && nose?.score > 0.3) {
+                   if (wrist.y < nose.y) { // Hands go up (Peak of jumping jack/burpee)
+                      if (!repData.current.isDown) { repData.current.isDown = true; setAiFeedback("Good reach!"); }
+                   } else if (wrist.y > hip.y) { // Hands go down
+                      if (repData.current.isDown) {
+                        repData.current.isDown = false; repData.current.count += 1;
+                        setAiReps(repData.current.count); speakFeedback(repData.current.count.toString());
+                        setAiFeedback("Keep the rhythm!");
+                      }
+                   }
+                } else setAiFeedback("Make sure your full body is in the frame!");
+              }
+
+              // ==========================================
+              // GROUP 6: TIMED ISOMETRICS (Plank, Wall Sit, Superman, Boxing)
+              // No reps required, just form checks.
+              // ==========================================
+              else if (exName.includes('plank') || exName.includes('sit') || exName.includes('superman') || exName.includes('boxing')) {
+                 setAiFeedback("Hold steady! This is a timed exercise. Keep breathing.");
+              }
+
+              // ==========================================
+              // FALLBACK (Just in case)
+              // ==========================================
+              else {
+                  setAiFeedback(`Auto-tracker not optimized for ${exName}. Use manual input.`);
               }
             }
           }
@@ -186,12 +347,36 @@ export default function App() {
       if (videoRef.current?.srcObject) videoRef.current.srcObject.getTracks().forEach(t => t.stop());
     };
   }, [aiModalOpen]);
+
+  // --- ADDED: FITNESS SCORE STATE ---
+  const [fitnessScore, setFitnessScore] = useState(0);
+
+  // --- ADDED: REWARD & LEVEL UP SYSTEM ---
+  const awardPoints = (taskName, points) => {
+    const newScore = fitnessScore + points;
+    setFitnessScore(newScore);
+    
+    const randomQuote = MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)];
+    let levelMsg = "";
+    let newLevel = userData.level;
+    
+    if (userData.level === 'beginner' && newScore >= 500) {
+      newLevel = 'intermediate';
+      levelMsg = "\n\n🎉 LEVEL UP! You are now an INTERMEDIATE athlete!";
+    } else if (userData.level === 'intermediate' && newScore >= 1500) {
+      newLevel = 'pro';
+      levelMsg = "\n\n🏆 LEVEL UP! You are now a PRO athlete!";
+    }
+    
+    if (newLevel !== userData.level) setUserData({...userData, level: newLevel});
+    alert(`+${points} Points for ${taskName}!\n\n"${randomQuote}"${levelMsg}`);
+  };
   
   const [historyActiveTab, setHistoryActiveTab] = useState('Day');
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   const [userData, setUserData] = useState({ name: "", weight: 75, lastWeight: 77, height: "", injuries: [], level: "beginner", streak: 5 });
-  const [targetWeight, setTargetWeight] = useState(70);
+  const [targetWeight, setTargetWeight] = useState(75);
   const [dailyCalsGoal, setDailyCalsGoal] = useState(2500); // ADDED: For Smart Goals
   
   const [waterGlasses, setWaterGlasses] = useState(0); // ADDED: Water tracker
@@ -253,17 +438,21 @@ export default function App() {
     
     setHistory([{ date: today, mode: gymMode.toUpperCase(), details: doneWorkoutsStrings, exercises: doneWorkoutsData, exercisesData: doneWorkoutsData, burnt: Math.round(totalBurnt) }, ...history]);
     setChecklist(prev => ({ ...prev, workout: true })); // Check off daily workout
+    awardPoints('Completing a Workout', 5);
     setCurrentSessionDetails({});
     setActiveTab('home');
     setSeconds(0);
     setIsTimerRunning(false);
+    
   };
 
   const weightDiff = (((userData.weight - userData.lastWeight) / userData.lastWeight) * 100).toFixed(1);
   const goalProgressPercent = Math.max(0, Math.min(100, (targetWeight / userData.weight) * 100));
-
+  
   return (
     <div style={{background: COLORS.bg, color: COLORS.text, minHeight: '100vh', maxWidth: '480px', margin: 'auto', paddingBottom: '90px', fontFamily: 'Roboto, sans-serif', position: 'relative'}}>
+
+      
       
       {/* SIDEBAR CIRCLE MENU */}
       <div style={{position: 'fixed', top: 0, left: menuOpen ? 0 : '-100%', width: '80%', height: '100%', background: COLORS.card, zIndex: 2000, transition: '0.3s', padding: '40px 20px', borderRight: `1px solid ${COLORS.border}`}}>
@@ -280,10 +469,11 @@ export default function App() {
         </div>
 
         <div style={{marginTop: '40px'}}>
-            <p onClick={() => {setActiveTab('profile'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Person style={{verticalAlign:'middle'}}/> Profile Settings</p>
             <p onClick={() => {setActiveTab('progress'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><ShowChart style={{verticalAlign:'middle'}}/> Progress Tracking</p>
+            <p onClick={() => {setActiveTab('planner'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><ListAlt style={{verticalAlign:'middle', color: COLORS.primary, marginRight: '8px'}}/> Weekly Planner</p>
             <p onClick={() => {setActiveTab('goals'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><EmojiEvents style={{verticalAlign:'middle'}}/> Set My Goals</p>
             <p onClick={() => {setActiveTab('home'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Home style={{verticalAlign:'middle'}}/> Dashboard</p>
+            <p onClick={() => {setActiveTab('profile'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Person style={{verticalAlign:'middle'}}/> Profile Settings</p>
         </div>
       </div>
 
@@ -340,6 +530,22 @@ export default function App() {
       {view === 'app' && activeTab === 'home' && (
         <div style={{padding: '0 20px'}}>
           <h1>Welcome, <span style={{color: COLORS.primary}}>{userData.name}</span>!</h1>
+
+           <div style={{background: 'linear-gradient(135deg, #111 0%, #003311 100%)', padding: '20px', borderRadius: '25px', marginBottom: '25px', border: `1px solid ${COLORS.primary}`}}>
+             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                 <div>
+                     <span style={{fontSize: '12px', color: COLORS.textDim}}>CURRENT RANK</span>
+                     <h3 style={{margin: '0', color: '#fff', textTransform: 'uppercase'}}>{userData.level}</h3>
+                 </div>
+                 <div style={{textAlign: 'right'}}>
+                     <span style={{fontSize: '12px', color: COLORS.textDim}}>FITNESS SCORE</span>
+                     <h3 style={{margin: '0', color: COLORS.primary, fontSize: '24px'}}>{fitnessScore} <span style={{fontSize: '12px'}}>pts</span></h3>
+                 </div>
+             </div>
+             <p style={{fontSize: '11px', color: '#ffd700', marginTop: '15px', fontStyle: 'italic'}}>
+                 {WEEKLY_PLAN[userData.level].nextLevel}
+             </p>
+          </div>
           
           {/* --- ADDED: DAILY CHECKLIST --- */}
           <div style={{background: COLORS.card, padding: '15px', borderRadius: '20px', border: `1px solid ${COLORS.border}`, marginBottom: '15px'}}>
@@ -364,7 +570,14 @@ export default function App() {
                 <span style={{fontSize: '11px', fontWeight: 'bold', color: COLORS.textDim}}>HYDRATION STATUS</span>
                 <h3 style={{margin: '5px 0', color: '#00d2ff'}}>{waterGlasses} / 8 Glasses</h3>
             </div>
-            <button onClick={() => {setWaterGlasses(w => w + 1); if(waterGlasses >= 7) setChecklist({...checklist, water: true});}} style={{background: '#00d2ff', color: '#000', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', display: 'flex'}}><LocalDrink /></button>
+            <button onClick={() => {
+                                    const newWater = waterGlasses + 1;
+                                    setWaterGlasses(newWater); 
+                                        if(newWater === 8) {
+                                                            setChecklist({...checklist, water: true});
+                                                            awardPoints('Daily Hydration Goal', 2);
+                                                          }
+                                    }}style={{background: '#00BFFF', color: '#fff', border: 'none', borderRadius: '50%', padding: '10px'}}><LocalDrink /></button>
           </div>
           
           <div style={{background: COLORS.card, padding: '25px', borderRadius: '25px', textAlign: 'center', margin: '15px 0', border: `1px solid ${COLORS.border}`}}>
@@ -672,6 +885,54 @@ export default function App() {
           </div>
         );
       })()}
+      {/* --- ADDED: WEEKLY PLANNER TAB --- */}
+      {view === 'app' && activeTab === 'planner' && (
+        <div style={{padding: '20px'}}>
+          <h2 style={{color: COLORS.primary, fontWeight: '900', textTransform: 'uppercase'}}>Weekly Protocol</h2>
+          
+          {/* FITNESS SCORE & LEVEL CARD */}
+          <div style={{background: 'linear-gradient(135deg, #111 0%, #003311 100%)', padding: '20px', borderRadius: '25px', marginBottom: '25px', border: `1px solid ${COLORS.primary}`}}>
+             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                 <div>
+                     <span style={{fontSize: '12px', color: COLORS.textDim}}>CURRENT RANK</span>
+                     <h3 style={{margin: '0', color: '#fff', textTransform: 'uppercase'}}>{userData.level}</h3>
+                 </div>
+                 <div style={{textAlign: 'right'}}>
+                     <span style={{fontSize: '12px', color: COLORS.textDim}}>FITNESS SCORE</span>
+                     <h3 style={{margin: '0', color: COLORS.primary, fontSize: '24px'}}>{fitnessScore} <span style={{fontSize: '12px'}}>pts</span></h3>
+                 </div>
+             </div>
+             <p style={{fontSize: '11px', color: '#ffd700', marginTop: '15px', fontStyle: 'italic'}}>
+                 {WEEKLY_PLAN[userData.level].nextLevel}
+             </p>
+          </div>
+
+          <h3 style={{fontSize: '15px', color: COLORS.textDim, marginBottom: '15px'}}>MONDAY - FRIDAY SPLIT</h3>
+          
+          {/* RENDER DAYS */}
+          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => {
+              const dayData = WEEKLY_PLAN[userData.level][day];
+              return (
+                <div key={day} style={{background: COLORS.card, padding: '20px', borderRadius: '20px', marginBottom: '15px', borderLeft: `5px solid ${day === 'Wednesday' ? '#444' : COLORS.primary}`, borderTop: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}`, borderBottom: `1px solid ${COLORS.border}`}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+                      <strong style={{color: day === 'Wednesday' ? COLORS.textDim : COLORS.primary, fontSize: '16px'}}>{day}</strong>
+                      <span style={{fontSize: '11px', background: '#222', padding: '4px 10px', borderRadius: '10px', color: '#fff'}}>{dayData.muscle}</span>
+                  </div>
+                  
+                  <div style={{marginBottom: '10px'}}>
+                      <span style={{fontSize: '11px', color: COLORS.textDim, display: 'block'}}>EXERCISES TO DO:</span>
+                      <span style={{fontSize: '14px', color: '#fff'}}>{dayData.exercises}</span>
+                  </div>
+                  
+                  <div>
+                      <span style={{fontSize: '11px', color: COLORS.textDim, display: 'block'}}>DIET FOCUS:</span>
+                      <span style={{fontSize: '13px', color: '#00d2ff'}}>{dayData.diet}</span>
+                  </div>
+                </div>
+              )
+          })}
+        </div>
+      )}
 
       {/* NAVIGATION */}
       {view === 'app' && (
