@@ -8,13 +8,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 const firebaseConfig = {
-  apiKey: "AIzaSyA4Cv_P5DDknDCfaufCe1hlf4V0ORq3XDw",
-  authDomain: "fitai-3da15.firebaseapp.com",
-  projectId: "fitai-3da15",
-  storageBucket: "fitai-3da15.firebasestorage.app",
-  messagingSenderId: "641658209504",
-  appId: "1:641658209504:web:5b72d69cd8b78abd6dbc85",
-  measurementId: "G-M1CGSM3LW8"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
  const app = initializeApp(firebaseConfig);
  const auth = getAuth(app);
@@ -583,6 +583,32 @@ const saveWorkout = async () => {
     setSeconds(0);
     setIsTimerRunning(false);
   };
+  // --- ADDED: SAVE WATER TO FIREBASE ---
+  const handleAddWater = async () => {
+    const newWater = waterGlasses + 1;
+    setWaterGlasses(newWater); // Instantly update screen
+    
+    let updatedChecklist = { ...checklist };
+    
+    // Check if they hit the 8 glass goal for the first time today
+    if (newWater === 8 && !checklist.water) {
+        updatedChecklist.water = true;
+        setChecklist(updatedChecklist);
+        awardPoints('Daily Hydration Goal', 2);
+    }
+
+    // Save to Firebase
+    if (user) {
+        try {
+            await updateDoc(doc(db, 'users', user.uid), {
+                waterGlasses: newWater,
+                checklist: updatedChecklist
+            });
+        } catch (error) {
+            console.error("Error saving water to DB", error);
+        }
+    }
+  };
   // --- ADDED: SAVE SMART GOALS TO FIREBASE ---
   const saveGoalsToDatabase = async () => {
     if (!user) return;
@@ -612,7 +638,7 @@ const saveWorkout = async () => {
 
     try {
       // 2. Initialize the AI (You will paste your free key here)
-      const genAI = new GoogleGenerativeAI("AIzaSyDk86XSTcCX1Ew-MS7BeOv6mtu39o-0gOI"); 
+      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY); 
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       // 3. THE MAGIC: Feed the user's live database stats into the AI's brain!
@@ -914,14 +940,12 @@ const saveWorkout = async () => {
                 <span style={{fontSize: '11px', fontWeight: 'bold', color: COLORS.textDim}}>HYDRATION STATUS</span>
                 <h3 style={{margin: '5px 0', color: '#00d2ff'}}>{waterGlasses} / 8 Glasses</h3>
             </div>
-            <button onClick={() => {
-                                    const newWater = waterGlasses + 1;
-                                    setWaterGlasses(newWater); 
-                                        if(newWater === 8) {
-                                                            setChecklist({...checklist, water: true});
-                                                            awardPoints('Daily Hydration Goal', 2);
-                                                          }
-                                    }}style={{background: '#00BFFF', color: '#fff', border: 'none', borderRadius: '50%', padding: '10px'}}><LocalDrink /></button>
+            <button 
+              onClick={handleAddWater} 
+              style={{background: '#00BFFF', color: '#fff', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', boxShadow: '0 0 10px rgba(0, 191, 255, 0.4)'}}
+            >
+              <LocalDrink />
+            </button>
           </div>
           
           <div style={{background: COLORS.card, padding: '25px', borderRadius: '25px', textAlign: 'center', margin: '15px 0', border: `1px solid ${COLORS.border}`}}>
