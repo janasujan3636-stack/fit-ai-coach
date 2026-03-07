@@ -1,8 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, FitnessCenter, Restaurant, History, PlayCircleOutline, Timer, EmojiEvents, Save, CheckCircle, ListAlt, Star, Person, Close, Menu, LocalFireDepartment, ShowChart, TrendingUp, TrendingDown, Fastfood, LocalDrink, Info, CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
+import { Home, FitnessCenter, Restaurant, History, PlayCircleOutline, Timer, EmojiEvents, Save, CheckCircle, ListAlt, Star, Person, Close, Menu, LocalFireDepartment, ShowChart, TrendingUp, TrendingDown, Fastfood, LocalDrink, Info, CheckBoxOutlineBlank, CheckBox, SmartToy, Send } from '@mui/icons-material';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs-core';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+const firebaseConfig = {
+  apiKey: "AIzaSyA4Cv_P5DDknDCfaufCe1hlf4V0ORq3XDw",
+  authDomain: "fitai-3da15.firebaseapp.com",
+  projectId: "fitai-3da15",
+  storageBucket: "fitai-3da15.firebasestorage.app",
+  messagingSenderId: "641658209504",
+  appId: "1:641658209504:web:5b72d69cd8b78abd6dbc85",
+  measurementId: "G-M1CGSM3LW8"
+};
+ const app = initializeApp(firebaseConfig);
+ const auth = getAuth(app);
+ const db = getFirestore(app);
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged, 
+  signOut 
+} from 'firebase/auth';
+import { 
+  doc, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  addDoc, 
+  query, 
+  getDocs, 
+  orderBy 
+} from 'firebase/firestore';
+
 const EXERCISE_DATA = {
   home: [
     { name: "Pushups", avoid: ["Shoulder"], tip: "Keep elbows at 45 degrees", embedId: "IODxDxX7oi4", burn: 5 },
@@ -81,6 +115,19 @@ const COLORS = { bg: '#000000', card: '#111111', text: '#ffffff', textDim: '#888
 export default function App() {
   const [view, setView] = useState('auth');
   const [activeTab, setActiveTab] = useState('home');
+ // --- ADDED: AI CHATBOT STATES ---
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'ai', text: "Hi! I'm FitAI. Ask me about your workouts, form, or nutrition!" }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+  const chatEndRef = useRef(null);
+
+  // Auto-scroll to the bottom whenever a new message appears
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, isAiTyping]);
+  const [selectedGraphDay, setSelectedGraphDay] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [gymMode, setGymMode] = useState('gym');
   // --- ADDED: AI TRACKER STATES ---
@@ -88,6 +135,62 @@ export default function App() {
   const [activeAiExercise, setActiveAiExercise] = useState(null);
   const [aiReps, setAiReps] = useState(0);
   const [aiFeedback, setAiFeedback] = useState("Align your body in the camera...");
+
+  // --- ADDED: FIREBASE STATES ---
+  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLogin, setIsLogin] = useState(true); // Toggle between Login/Signup
+  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  // --- ADDED: LISTEN FOR AUTH CHANGES & FETCH DATA ---
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        // Fetch User Data
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserData(prev => ({
+            ...(data.profile || prev),
+            streak: data.streak || 0,
+            lastWorkoutDate: data.lastWorkoutDate || null
+          }));
+          setFitnessScore(data.fitnessScore || 0);
+          setPbs(data.pbs || {});
+          setTargetWeight(data.targetWeight || 75);
+          setDailyCalsGoal(data.dailyCalsGoal || 2500);
+          
+          // Reset daily trackers if it's a new day
+          if (data.lastLoginDate !== today) {
+            setWaterGlasses(0);
+            setChecklist({ water: false, stretch: false, workout: false });
+            await updateDoc(doc(db, 'users', currentUser.uid), { lastLoginDate: today });
+          } else {
+            setWaterGlasses(data.waterGlasses || 0);
+            setChecklist(data.checklist || { water: false, stretch: false, workout: false });
+          }
+          
+          // Fetch History & Food (Simplified for brevity)
+          const historySnap = await getDocs(query(collection(db, 'users', currentUser.uid, 'history'), orderBy('timestamp', 'desc')));
+          setHistory(historySnap.docs.map(d => d.data()));
+          
+          const foodSnap = await getDocs(query(collection(db, 'users', currentUser.uid, 'foodJournal'), orderBy('timestamp', 'desc')));
+          setFoodJournal(foodSnap.docs.map(d => d.data()));
+          
+          setView('app');
+        } else {
+          setView('onboarding'); // New user needs setup
+        }
+      } else {
+        setUser(null);
+        setView('auth');
+      }
+    });
+    return () => unsubscribe();
+  }, [today]);
+  
+
 // --- REAL AI TRACKING REPS ---
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -375,7 +478,7 @@ export default function App() {
   const [historyActiveTab, setHistoryActiveTab] = useState('Day');
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  const [userData, setUserData] = useState({ name: "", weight: 75, lastWeight: 77, height: "", injuries: [], level: "beginner", streak: 5 });
+  const [userData, setUserData] = useState({ name: "", weight: "", height: "", injuries: [], level: "beginner", streak: 0 });
   const [targetWeight, setTargetWeight] = useState(75);
   const [dailyCalsGoal, setDailyCalsGoal] = useState(2500); // ADDED: For Smart Goals
   
@@ -390,7 +493,7 @@ export default function App() {
   const [foodJournal, setFoodJournal] = useState([]);
   const [activeVideo, setActiveVideo] = useState(null);
 
-  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  
 
   useEffect(() => {
     let interval;
@@ -416,44 +519,277 @@ export default function App() {
   const todaysCalsIntake = foodJournal.filter(f => f.date === today).reduce((sum, f) => sum + f.kcal, 0);
   const todaysCalsBurnt = history.filter(h => h.date === today).reduce((sum, h) => sum + (h.burnt || 0), 0);
 
-  // UPGRADED: Save Workout now stores raw data for the Progress Hub analysis
-  const saveWorkout = () => {
+const saveWorkout = async () => {
     let totalBurnt = 0;
     const doneWorkoutsStrings = [];
-    const doneWorkoutsData = []; // NEW: Stores objects for Analytics
+    const doneWorkoutsData = [];
     
     Object.entries(currentSessionDetails)
       .filter(([name, data]) => data.weight || data.sets || data.reps)
       .forEach(([name, data]) => {
         const baseEx = [...EXERCISE_DATA.gym, ...EXERCISE_DATA.home, ...EXERCISE_DATA.travel].find(e => e.name === name) || { burn: 5 };
         totalBurnt += (baseEx.burn * (data.sets || 1)); 
-        
-        // Push string for old History tab compatibility
         doneWorkoutsStrings.push(`${name} (${data.sets || 0}s × ${data.reps || 0}r @ ${data.weight || 0}kg)`);
-        // Push object for Progress Hub Analytics
         doneWorkoutsData.push({ name, sets: Number(data.sets)||0, reps: Number(data.reps)||0, weight: Number(data.weight)||0 });
       });
       
     if (doneWorkoutsStrings.length === 0) return alert("Enter session details to save.");
     
-    setHistory([{ date: today, mode: gymMode.toUpperCase(), details: doneWorkoutsStrings, exercises: doneWorkoutsData, exercisesData: doneWorkoutsData, burnt: Math.round(totalBurnt) }, ...history]);
-    setChecklist(prev => ({ ...prev, workout: true })); // Check off daily workout
+    // --- NEW: STREAK CALCULATION LOGIC ---
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    const yesterdayStr = y.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    let newStreak = userData.streak || 0;
+    if (userData.lastWorkoutDate === yesterdayStr) {
+      newStreak += 1; // Worked out yesterday, increase streak!
+    } else if (userData.lastWorkoutDate !== today) {
+      newStreak = 1; // Missed a day, reset streak to 1
+    }
+
+    // --- NEW: ADD DURATION TO WORKOUT DATA ---
+    const workoutData = { 
+      date: today, 
+      timestamp: new Date().getTime(),
+      mode: gymMode.toUpperCase(), 
+      details: doneWorkoutsStrings, 
+      exercises: doneWorkoutsData,      
+      exercisesData: doneWorkoutsData, 
+      burnt: Math.round(totalBurnt),
+      duration: seconds // Saves the timer seconds
+    };
+
+    // Save to Firestore
+    if (user) {
+      await addDoc(collection(db, 'users', user.uid, 'history'), workoutData);
+      
+      await updateDoc(doc(db, 'users', user.uid), {
+        'checklist.workout': true,
+        fitnessScore: fitnessScore + 5,
+        streak: newStreak,
+        lastWorkoutDate: today
+      });
+    }
+
+    // Update Local State
+    setHistory([workoutData, ...history]);
+    setChecklist(prev => ({ ...prev, workout: true }));
+    setUserData(prev => ({ ...prev, streak: newStreak, lastWorkoutDate: today }));
     awardPoints('Completing a Workout', 5);
     setCurrentSessionDetails({});
     setActiveTab('home');
+    
+    // Reset Timer
     setSeconds(0);
     setIsTimerRunning(false);
+  };
+  // --- ADDED: SAVE SMART GOALS TO FIREBASE ---
+  const saveGoalsToDatabase = async () => {
+    if (!user) return;
+    try {
+      // Update the targetWeight and dailyCalsGoal in the user's document
+      await updateDoc(doc(db, 'users', user.uid), {
+        targetWeight: targetWeight,
+        dailyCalsGoal: dailyCalsGoal
+      });
+      alert("Goals Updated Successfully!");
+      setActiveTab('home');
+    } catch (error) {
+      console.error("Error saving goals:", error);
+      alert("Failed to save goals.");
+    }
+  };
+  // --- UPGRADED: REAL PERSONALIZED AI LOGIC ---
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
+
+    // 1. Put user's message on the screen
+    const userText = chatInput;
+    const newMessages = [...chatMessages, { role: 'user', text: userText }];
+    setChatMessages(newMessages);
+    setChatInput('');
+    setIsAiTyping(true);
+
+    try {
+      // 2. Initialize the AI (You will paste your free key here)
+      const genAI = new GoogleGenerativeAI("AIzaSyDk86XSTcCX1Ew-MS7BeOv6mtu39o-0gOI"); 
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      // 3. THE MAGIC: Feed the user's live database stats into the AI's brain!
+      const contextPrompt = `
+        You are FitAI, an elite, highly motivating personal trainer. 
+        Keep your answers concise, friendly, and under 3 sentences. 
+        
+        Here is your client's live data from the app database right now:
+        - Name: ${userData.name || 'My friend'}
+        - Current Weight: ${userData.weight || 0} kg
+        - Goal Weight: ${targetWeight} kg
+        - Experience Level: ${userData.level}
+        - Current Streak: ${userData.streak} days
+        - Injuries to strictly avoid: ${userData.injuries.length > 0 ? userData.injuries.join(', ') : 'None'}
+        - Calories Eaten Today: ${todaysCalsIntake} kcal (Target: ${dailyCalsGoal})
+        - Calories Burnt Today: ${todaysCalsBurnt} kcal
+        
+        Using ONLY this context to personalize your advice, respond to the client's message: "${userText}"
+      `;
+
+      // 4. Send the prompt to the AI and wait for the custom response
+      const result = await model.generateContent(contextPrompt);
+      const aiResponse = result.response.text();
+
+      // 5. Put the AI's response on the screen
+      setChatMessages([...newMessages, { role: 'ai', text: aiResponse }]);
+
+    } catch (error) {
+      console.error("AI Error:", error);
+      setChatMessages([...newMessages, { role: 'ai', text: "Whoops! My AI brain lost connection. Did you add your API key?" }]);
+    }
     
+    setIsAiTyping(false);
   };
 
-  const weightDiff = (((userData.weight - userData.lastWeight) / userData.lastWeight) * 100).toFixed(1);
-  const goalProgressPercent = Math.max(0, Math.min(100, (targetWeight / userData.weight) * 100));
+  // --- ADDED: SAVE FOOD LOG TO FIREBASE ---
+  const logFoodToDatabase = async (mealType, foodName, kcalVal) => {
+    if (!user) return;
+
+    const foodEntry = {
+      date: today,
+      timestamp: new Date().getTime(),
+      name: foodName,
+      kcal: kcalVal,
+      meal: mealType
+    };
+
+    // 1. Instantly update the screen
+    setFoodJournal([foodEntry, ...foodJournal]);
+
+    // 2. Save it permanently to Firestore
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'foodJournal'), foodEntry);
+    } catch (error) {
+      console.error("Error saving food:", error);
+      alert("Failed to save food log to database.");
+    }
+  };
+
+  const handleAuth = async () => {
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch (error) {
+      alert("Auth Error: " + error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setMenuOpen(false);
+  };
+  const saveProfile = async () => {
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        profile: userData,
+        fitnessScore,
+        targetWeight,
+        dailyCalsGoal,
+        lastLoginDate: today,
+      }, { merge: true });
+      setView('app');
+    } catch (error) {
+      console.error("Error saving profile", error);
+    }
+  };
+  // --- ADDED: SAVE PROFILE & TRACK WEIGHT CHANGES ---
+  const saveProfileChanges = async () => {
+    if (!user) return;
+    
+    // Fetch the database to see what your weight WAS before you just typed the new one
+    const docRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(docRef);
+    let pastWeight = userData.lastWeight || userData.weight; 
+    
+    if (docSnap.exists() && docSnap.data().profile?.weight) {
+        const dbWeight = docSnap.data().profile.weight;
+        // If the weight in the database is different from what is in the input box right now
+        if (dbWeight !== userData.weight) {
+            pastWeight = dbWeight; // Shift the old database weight into the 'lastWeight' slot
+        }
+    }
+
+    const updatedProfile = { ...userData, lastWeight: pastWeight };
+
+    await updateDoc(docRef, { profile: updatedProfile });
+    setUserData(updatedProfile);
+    alert("Profile and Weight Updated!");
+  };
+ // --- UPGRADED: INTERACTIVE 7-DAY GRAPH DATA ---
+  const getDynamicChartData = () => {
+    const chartData = [];
+    let maxBurnt = 0;
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateString = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' }); // Gets Mon, Tue, etc.
+
+      // Calculate burnt for this specific day
+      const burntThatDay = history
+        .filter(h => h.date === dateString)
+        .reduce((sum, h) => sum + (h.burnt || 0), 0);
+        
+      // Calculate food intake for this specific day
+      const intakeThatDay = foodJournal
+        .filter(f => f.date === dateString)
+        .reduce((sum, f) => sum + (f.kcal || 0), 0);
+
+      if (burntThatDay > maxBurnt) maxBurnt = burntThatDay;
+      
+      chartData.push({
+        date: dateString,
+        dayName: dayName,
+        burnt: burntThatDay,
+        intake: intakeThatDay
+      });
+    }
+
+    const safeMax = maxBurnt > 0 ? maxBurnt : 100; 
+    
+    // Add the height percentage to each day's data object
+    return chartData.map(day => ({
+      ...day,
+      heightPercent: Math.max((day.burnt / safeMax) * 100, 2)
+    }));
+  };
   
+  // --- DYNAMIC WEIGHT & GOAL MATH ---
+  const currentW = Number(userData.weight) || 0;
+  const previousW = Number(userData.lastWeight) || currentW; // Defaults to current if no past weight exists
+  const targetW = Number(targetWeight) || 1;
+
+  // 1. Calculate Trending Up/Down Percentage
+  const weightDiff = previousW > 0 ? (((currentW - previousW) / previousW) * 100).toFixed(1) : 0;
+
+  // 2. Calculate Goal Progress Bar (Works for both Weight Loss AND Weight Gain)
+  let goalProgressPercent = 0;
+  if (currentW > 0) {
+    if (targetW < currentW) {
+      // Weight Loss Goal (e.g., Current 80, Target 75 -> 93% to goal)
+      goalProgressPercent = (targetW / currentW) * 100;
+    } else {
+      // Weight Gain Goal (e.g., Current 70, Target 75 -> 93% to goal)
+      goalProgressPercent = (currentW / targetW) * 100;
+    }
+  }
+  // Make sure the bar never visually breaks past 100% or goes below 0%
+  goalProgressPercent = Math.min(100, Math.max(0, goalProgressPercent));
+
   return (
     <div style={{background: COLORS.bg, color: COLORS.text, minHeight: '100vh', maxWidth: '480px', margin: 'auto', paddingBottom: '90px', fontFamily: 'Roboto, sans-serif', position: 'relative'}}>
-
-      
-      
       {/* SIDEBAR CIRCLE MENU */}
       <div style={{position: 'fixed', top: 0, left: menuOpen ? 0 : '-100%', width: '80%', height: '100%', background: COLORS.card, zIndex: 2000, transition: '0.3s', padding: '40px 20px', borderRight: `1px solid ${COLORS.border}`}}>
         <Close onClick={() => setMenuOpen(false)} style={{position: 'absolute', right: 20, top: 20, color: COLORS.primary, cursor: 'pointer'}} />
@@ -472,8 +808,12 @@ export default function App() {
             <p onClick={() => {setActiveTab('progress'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><ShowChart style={{verticalAlign:'middle'}}/> Progress Tracking</p>
             <p onClick={() => {setActiveTab('planner'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><ListAlt style={{verticalAlign:'middle', color: COLORS.primary, marginRight: '8px'}}/> Weekly Planner</p>
             <p onClick={() => {setActiveTab('goals'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><EmojiEvents style={{verticalAlign:'middle'}}/> Set My Goals</p>
+            <p onClick={() => {setActiveTab('chat'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><SmartToy style={{verticalAlign:'middle', color: COLORS.primary, marginRight: '8px'}}/> AI Coach</p>
             <p onClick={() => {setActiveTab('home'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Home style={{verticalAlign:'middle'}}/> Dashboard</p>
             <p onClick={() => {setActiveTab('profile'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Person style={{verticalAlign:'middle'}}/> Profile Settings</p>
+            <p onClick={handleLogout} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer', color: COLORS.danger}}>
+  Logout
+</p>
         </div>
       </div>
 
@@ -493,9 +833,13 @@ export default function App() {
           <h1 style={{color: COLORS.primary, fontSize: '32px', textShadow: `0 0 10px ${COLORS.primary}`}}>FitAI</h1>
           <p style={{color: COLORS.textDim, marginBottom: '40px'}}>The Smart Trainer for Poor Gymers</p>
           <div style={{background: COLORS.card, padding: '25px', borderRadius: '20px', border: `1px solid ${COLORS.border}`}}>
-            <input type="email" placeholder="Email" style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
-            <input type="password" placeholder="Password" style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
-            <button onClick={() => setView('onboarding')} style={{width: '100%', padding: '14px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold'}}>Login</button>
+            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
+            <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
+            <button onClick={handleAuth} style={{width: '100%', padding: '14px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold'}}>
+            {isLogin ? 'Login' : 'Sign Up'}</button>
+            <p onClick={() => setIsLogin(!isLogin)} style={{color: COLORS.primary, cursor: 'pointer', marginTop: '15px'}}>
+  {isLogin ? "Need an account? Sign Up" : "Have an account? Login"}
+</p>
           </div>
         </div>
       )}
@@ -521,7 +865,7 @@ export default function App() {
                 <button key={part} onClick={() => toggleInjury(part)} style={{padding: '8px 16px', borderRadius: '20px', border: '1px solid #333', background: userData.injuries.includes(part) ? COLORS.danger : COLORS.inputBg, color: '#fff'}}>{part}</button>
               ))}
             </div>
-            <button onClick={() => setView('app')} style={{width: '100%', padding: '15px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '12px', fontWeight: 'bold'}}>Start Training</button>
+            <button onClick={saveProfile} style={{width: '100%', padding: '15px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '12px', fontWeight: 'bold'}}>Start Training</button>
           </div>
         </div>
       )}
@@ -581,13 +925,18 @@ export default function App() {
           </div>
           
           <div style={{background: COLORS.card, padding: '25px', borderRadius: '25px', textAlign: 'center', margin: '15px 0', border: `1px solid ${COLORS.border}`}}>
-            <h2 style={{fontSize: '32px', margin: 0, color: COLORS.primary}}>{userData.weight} kg</h2>
-            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', color: weightDiff > 0 ? COLORS.danger : COLORS.primary}}>
-              {weightDiff > 0 ? <TrendingUp /> : <TrendingDown />}
-              <span style={{fontSize: '14px'}}>{Math.abs(weightDiff)}% from last month</span>
-            </div>
+            <span style={{fontSize: '12px', color: COLORS.textDim, fontWeight: 'bold'}}>CURRENT WEIGHT</span>
+            <h2 style={{fontSize: '32px', margin: '5px 0 0 0', color: COLORS.primary}}>
+              {userData.weight ? `${userData.weight} kg` : '-- kg'}
+            </h2>
+            {/* The Trending Up/Down Indicator */}
+            {userData.lastWeight && userData.lastWeight !== userData.weight && (
+              <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', color: weightDiff > 0 ? COLORS.danger : COLORS.primary}}>
+                {weightDiff > 0 ? <TrendingUp /> : <TrendingDown />}
+                <span style={{fontSize: '14px'}}>{Math.abs(weightDiff)}% from previous check-in</span>
+              </div>
+            )}
           </div>
-
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
             <div style={{background: COLORS.card, padding: '15px', borderRadius: '20px', border: `1px solid ${COLORS.border}`}}>
               <span style={{fontSize: '11px', fontWeight: 'bold', color: COLORS.primary}}>INTAKE</span>
@@ -627,7 +976,7 @@ export default function App() {
              <label style={{color: COLORS.textDim, fontSize: '12px'}}>DAILY CALORIE TARGET</label>
              <input type="number" value={dailyCalsGoal} onChange={(e) => setDailyCalsGoal(parseFloat(e.target.value) || 0)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '15px', margin: '10px 0 25px 0', border: `1px solid ${COLORS.border}`, borderRadius: '10px'}} />
              
-             <button onClick={() => {alert("Goals Updated Successfully!"); setActiveTab('home')}} style={{width: '100%', padding: '18px', background: COLORS.primary, color: '#000', fontWeight: '900', borderRadius: '12px', border: 'none'}}>SAVE GOALS</button>
+            <button onClick={saveGoalsToDatabase} style={{width: '100%', padding: '18px', background: COLORS.primary, color: '#000', fontWeight: '900', borderRadius: '12px', border: 'none'}}>SAVE GOALS</button>
           </div>
         </div>
       )}
@@ -679,14 +1028,49 @@ export default function App() {
           </div>
 
           <div style={{background: COLORS.card, padding: '20px', borderRadius: '20px', border: `1px solid ${COLORS.border}`, marginTop: '20px'}}>
-            <p><strong>Total Burnt Today:</strong> {todaysCalsBurnt} kcal</p>
-            <p><strong>Total Intake Today:</strong> {todaysCalsIntake} kcal</p>
+            <p style={{margin: '0 0 5px 0'}}><strong>Total Burnt Today:</strong> <span style={{color: COLORS.danger}}>{todaysCalsBurnt} kcal</span></p>
+            <p style={{margin: 0}}><strong>Total Intake Today:</strong> <span style={{color: '#00d2ff'}}>{todaysCalsIntake} kcal</span></p>
+            
+            {/* THE BARS */}
             <div style={{display:'flex', gap:'8px', alignItems:'flex-end', height:'100px', marginTop:'20px'}}>
-               {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-                 <div key={i} style={{flex:1, background: COLORS.primary, height:`${h}%`, borderRadius:'4px'}}></div>
+               {getDynamicChartData().map((data, i) => (
+                 <div 
+                   key={i} 
+                   onClick={() => setSelectedGraphDay(data)}
+                   style={{
+                     flex: 1, 
+                     background: selectedGraphDay?.date === data.date ? '#00d2ff' : COLORS.primary, // Turns blue when clicked
+                     height: `${data.heightPercent}%`, 
+                     borderRadius: '4px',
+                     cursor: 'pointer',
+                     transition: 'all 0.3s ease',
+                     boxShadow: selectedGraphDay?.date === data.date ? '0 0 10px #00d2ff' : 'none'
+                   }}
+                 ></div>
                ))}
             </div>
-            <p style={{fontSize: '10px', textAlign: 'center', marginTop: '10px', color: COLORS.textDim}}>Exercise Intensity across last 7 sessions</p>
+
+            {/* THE DAY LABELS (M, T, W, T, F, S, S) */}
+            <div style={{display:'flex', gap:'8px', marginTop:'8px'}}>
+               {getDynamicChartData().map((data, i) => (
+                 <div key={i} style={{flex: 1, textAlign: 'center', fontSize: '11px', color: COLORS.textDim, fontWeight: 'bold'}}>
+                   {data.dayName.charAt(0)}
+                 </div>
+               ))}
+            </div>
+            
+            {/* THE POP-UP DETAILS WHEN A BAR IS CLICKED */}
+            {selectedGraphDay ? (
+              <div style={{marginTop: '20px', padding: '15px', background: '#111', borderRadius: '12px', border: `1px dashed ${COLORS.primary}`, textAlign: 'center'}}>
+                <span style={{color: COLORS.primary, fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '10px'}}>{selectedGraphDay.date}</span>
+                <div style={{display: 'flex', justifyContent: 'space-around'}}>
+                  <div><span style={{color: COLORS.danger, fontSize: '18px', fontWeight: 'bold'}}>{selectedGraphDay.burnt}</span><br/><span style={{fontSize: '10px', color: COLORS.textDim}}>KCAL BURNT</span></div>
+                  <div><span style={{color: '#00d2ff', fontSize: '18px', fontWeight: 'bold'}}>{selectedGraphDay.intake}</span><br/><span style={{fontSize: '10px', color: COLORS.textDim}}>KCAL INTAKE</span></div>
+                </div>
+              </div>
+            ) : (
+              <p style={{fontSize: '11px', textAlign: 'center', marginTop: '20px', color: COLORS.textDim}}>👆 Tap a bar to see daily details</p>
+            )}
           </div>
         </div>
       )}
@@ -701,12 +1085,18 @@ export default function App() {
                 <Fastfood style={{color: COLORS.primary}}/>
                 <h4 style={{margin:0}}>{mealType}</h4>
               </div>
-              <select onChange={(e) => {
-                const foodName = e.target.value;
-                const kcalVal = FOOD_DB[mealType.toLowerCase()][foodName];
-                if(kcalVal) setFoodJournal([{date: today, name: foodName, kcal: kcalVal, meal: mealType}, ...foodJournal]);
-              }} style={{width: '100%', background: COLORS.inputBg, color: '#fff', padding: '10px', border: `1px solid ${COLORS.border}`}}>
-                <option>Select from 100+ items...</option>
+              <select 
+                onChange={(e) => {
+                  const foodName = e.target.value;
+                  const kcalVal = FOOD_DB[mealType.toLowerCase()][foodName];
+                  if(kcalVal) {
+                     logFoodToDatabase(mealType, foodName, kcalVal);
+                     e.target.value = "Select from 100+ items..."; // Resets the dropdown after selecting
+                  }
+                }} 
+                style={{width: '100%', background: COLORS.inputBg, color: '#fff', padding: '10px', border: `1px solid ${COLORS.border}`, borderRadius: '8px'}}
+              >
+                <option>Select from food items...</option>
                 {Object.keys(FOOD_DB[mealType.toLowerCase()]).map(item => <option key={item} value={item}>{item}</option>)}
               </select>
             </div>
@@ -742,9 +1132,16 @@ export default function App() {
               <option value="intermediate">Intermediate</option>
               <option value="pro">Pro</option>
             </select>
+           <button 
+              onClick={saveProfileChanges} 
+              style={{width: '100%', padding: '14px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', marginTop: '25px'}}
+            >
+              <Save style={{verticalAlign: 'middle', marginRight: '5px'}}/> Save Profile Changes
+            </button> 
           </div>
         </div>
       )}
+     
 
       {/* GYM TAB (KEEPING YOUR EXACT EXISTING LOGIC) */}
       {view === 'app' && activeTab === 'gym' && (
@@ -854,7 +1251,14 @@ export default function App() {
                     <div key={i} style={{background: COLORS.card, padding: '20px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${COLORS.border}`}}>
                       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: `1px solid #222`, paddingBottom: '10px'}}>
                         <strong style={{color: COLORS.text, fontSize: '16px'}}>{h.mode} Workout</strong>
-                        <span style={{color: COLORS.textDim, fontSize: '12px'}}>{h.exercises ? h.exercises.length : 0} Exercises</span>
+                        <div style={{textAlign: 'right'}}>
+                          {/* NEW: Timer Display */}
+                          <span style={{color: COLORS.primary, fontSize: '12px', marginRight: '10px'}}>
+                            <Timer style={{fontSize:'14px', verticalAlign:'middle', marginRight:'2px'}}/> 
+                            {Math.floor((h.duration || 0) / 60)}:{String((h.duration || 0) % 60).padStart(2, '0')}
+                          </span>
+                          <span style={{color: COLORS.textDim, fontSize: '12px'}}>{h.exercises ? h.exercises.length : 0} Exercises</span>
+                        </div>
                       </div>
                       <ul style={{fontSize: '14px', color: COLORS.textDim, paddingLeft: '0', listStyle: 'none', margin: 0}}>
                         {/* SAFE MAP: Uses || [] to prevent crashes */}
@@ -931,6 +1335,69 @@ export default function App() {
                 </div>
               )
           })}
+        </div>
+      )}
+     {/* --- ADDED: AI CHATBOT TAB (FIXED SCROLLING) --- */}
+      {view === 'app' && activeTab === 'chat' && (
+        <div style={{
+          display: 'flex', 
+          flexDirection: 'column', 
+          position: 'absolute', // Locks the container to the screen
+          top: '70px',          // Sits right below your top header
+          bottom: '80px',       // Sits right above your bottom nav bar
+          left: 0, 
+          right: 0, 
+          padding: '0 20px'
+        }}>
+           <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', flexShrink: 0}}>
+             <SmartToy style={{color: COLORS.primary, fontSize: '28px'}} />
+             <h2 style={{color: COLORS.primary, margin: 0}}>FitAI Coach</h2>
+           </div>
+
+           {/* CHAT MESSAGES AREA (This will now scroll perfectly!) */}
+           <div style={{flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '10px', scrollbarWidth: 'none'}}>
+             {chatMessages.map((msg, i) => (
+               <div key={i} style={{alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%'}}>
+                 <div style={{
+                   background: msg.role === 'user' ? COLORS.primary : COLORS.card,
+                   color: msg.role === 'user' ? '#000' : '#fff',
+                   padding: '14px 18px',
+                   borderRadius: msg.role === 'user' ? '20px 20px 0 20px' : '20px 20px 20px 0',
+                   border: msg.role === 'ai' ? `1px solid ${COLORS.border}` : 'none',
+                   fontSize: '14px',
+                   lineHeight: '1.5',
+                   boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                 }}>
+                   {msg.text}
+                 </div>
+               </div>
+             ))}
+             
+             {/* TYPING INDICATOR */}
+             {isAiTyping && (
+               <div style={{alignSelf: 'flex-start', background: COLORS.card, padding: '14px 18px', borderRadius: '20px 20px 20px 0', border: `1px solid ${COLORS.border}`}}>
+                 <span style={{color: COLORS.primary, fontSize: '12px', fontStyle: 'italic', fontWeight: 'bold'}}>FitAI is typing...</span>
+               </div>
+             )}
+             
+             {/* INVISIBLE ELEMENT TO AUTO-SCROLL TO */}
+             <div ref={chatEndRef} />
+           </div>
+
+           {/* MESSAGE INPUT BOX */}
+           <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexShrink: 0}}>
+             <input
+               type="text"
+               value={chatInput}
+               onChange={(e) => setChatInput(e.target.value)}
+               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+               placeholder="Ask about diet, workouts..."
+               style={{flex: 1, background: COLORS.inputBg, color: '#fff', border: `1px solid ${COLORS.border}`, borderRadius: '25px', padding: '15px 20px', outline: 'none', fontSize: '14px'}}
+             />
+             <button onClick={handleSendMessage} style={{background: COLORS.primary, border: 'none', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0}}>
+               <Send style={{color: '#000', fontSize: '20px', marginLeft: '4px'}} />
+             </button>
+           </div>
         </div>
       )}
 
