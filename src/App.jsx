@@ -110,7 +110,388 @@ const MOTIVATION_QUOTES = [
   "Discipline bridges the gap between goals and accomplishment."
 ];
 
-const COLORS = { bg: '#000000', card: '#111111', text: '#ffffff', textDim: '#888888', primary: '#00e676', border: '#222222', inputBg: '#1a1a1a', danger: '#ff4444' };
+const COLORS = { bg: '#000000', card: '#0d0d0d', text: '#ffffff', textDim: '#666666', primary: '#00e676', border: '#1e1e1e', inputBg: '#111111', danger: '#ff4444', accent: '#00e676', muted: '#333333' };
+
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #000;
+    --card: #0d0d0d;
+    --border: #1e1e1e;
+    --text: #fff;
+    --dim: #666;
+    --input: #111;
+  }
+  body { background: #000; }
+  .fitai-app {
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    padding-bottom: 90px;
+    font-family: 'DM Sans', sans-serif;
+    position: relative;
+  }
+  @media (min-width: 768px) {
+    .fitai-app { max-width: 720px; padding-bottom: 100px; }
+    .grid-2 { grid-template-columns: 1fr 1fr !important; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr !important; }
+  }
+  @media (min-width: 1024px) {
+    .fitai-app { max-width: 900px; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  /* TYPOGRAPHY */
+  .display-font { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+  .mono-font { font-family: 'Space Mono', monospace; }
+
+  /* INPUTS */
+  input, select {
+    background: var(--input) !important;
+    color: #fff !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 14px 16px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14px !important;
+    width: 100%;
+    outline: none !important;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: #00e676 !important; }
+  input::placeholder { color: #444 !important; }
+  select option { background: #111; color: #fff; }
+
+  /* BUTTONS */
+  .btn-primary {
+    background: #00e676;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 16px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+  .btn-primary:hover { background: #00c853; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: #aaa;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-outline:hover, .btn-outline.active { background: #00e676; color: #000; border-color: #00e676; }
+  .btn-ghost {
+    background: transparent;
+    color: #666;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .btn-ghost.active { color: #00e676; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #1a3a2a; }
+  .card-featured {
+    background: linear-gradient(135deg, #001a0d 0%, #003320 100%);
+    border: 1px solid #00e67633;
+    color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  /* LABEL */
+  .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #555;
+  }
+  .label-white { color: rgba(0,230,118,0.5); }
+
+  /* NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 560px;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid #1a1a1a;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 16px;
+    z-index: 1000;
+  }
+  @media (min-width: 768px) {
+    .bottom-nav { max-width: 720px; padding: 14px 0 18px; }
+  }
+  @media (min-width: 1024px) {
+    .bottom-nav { max-width: 900px; }
+  }
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 16px;
+    color: #444;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+  }
+  .nav-btn.active { color: #00e676; }
+  .nav-btn svg { font-size: 22px !important; }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(320px, 85vw);
+    height: 100%;
+    background: #000;
+    border-right: 1px solid #1e1e1e;
+    z-index: 2000;
+    padding: 40px 28px;
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .sidebar.closed { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid #111;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: color 0.2s;
+    color: #aaa;
+  }
+  .sidebar-item:hover { color: #00e676; }
+
+  /* HEADER */
+  .app-header {
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #111;
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+  }
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #001a0d;
+    border: 1px solid #00e67633;
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #00e676;
+  }
+
+  /* AUTH */
+  .auth-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+  .auth-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 15vw, 120px);
+    letter-spacing: 8px;
+    line-height: 1;
+    color: #00e676;
+  }
+
+  /* EXERCISE CARD */
+  .ex-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .ex-card:hover { border-color: #1a3a2a; }
+
+  /* PROGRESS BAR */
+  .progress-track {
+    width: 100%;
+    height: 3px;
+    background: #1e1e1e;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #00e676;
+    border-radius: 2px;
+    transition: width 0.8s ease;
+  }
+
+  /* STATS GRID */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 600px) {
+    .stat-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  }
+
+  /* CHECKLIST */
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #111;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .check-item:last-child { border-bottom: none; }
+
+  /* WATER DOTS */
+  .water-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+  }
+  .water-dot.filled {
+    background: #00e676;
+    border-color: #00e676;
+  }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+    border: 1px solid #2a2a2a;
+    color: #888;
+    background: #111;
+  }
+  .tag.active { background: #00e676; color: #000; border-color: #00e676; }
+
+  /* INJURY TOGGLE */
+  .injury-btn {
+    padding: 10px 20px;
+    border-radius: 100px;
+    border: 1px solid #2a2a2a;
+    background: #111;
+    color: #888;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .injury-btn.active { background: #00e676; color: #000; border-color: #00e676; }
+  .injury-btn.danger { background: #1a0000; color: #ff4444; border-color: #ff2222; }
+
+  /* CHART BAR */
+  .chart-bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #1a2a1a;
+    min-height: 4px;
+  }
+  .chart-bar:hover { background: #2a4a2a; }
+  .chart-bar.selected { background: #00e676; box-shadow: 0 0 12px rgba(0,230,118,0.4); }
+
+  /* CHAT */
+  .chat-bubble {
+    padding: 14px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 82%;
+  }
+  .chat-bubble.user { background: #00e676; color: #000; border-radius: 20px 20px 4px 20px; align-self: flex-end; }
+  .chat-bubble.ai { background: #0d1a11; color: #fff; border: 1px solid #1a3a22; border-radius: 20px 20px 20px 4px; align-self: flex-start; }
+
+  /* TIER BADGE */
+  .tier-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    background: #00e676;
+    color: #000;
+  }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: #111; margin: 20px 0; }
+
+  /* FADE IN */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.4s ease forwards; }
+
+  /* PULSE */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .typing-dot { animation: pulse 1.2s ease infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+`;
 
 export default function App() {
   const [view, setView] = useState('auth');
@@ -815,422 +1196,507 @@ const saveWorkout = async () => {
   goalProgressPercent = Math.min(100, Math.max(0, goalProgressPercent));
 
   return (
-    <div style={{background: COLORS.bg, color: COLORS.text, minHeight: '100vh', maxWidth: '480px', margin: 'auto', paddingBottom: '90px', fontFamily: 'Roboto, sans-serif', position: 'relative'}}>
-      {/* SIDEBAR CIRCLE MENU */}
-      <div style={{position: 'fixed', top: 0, left: menuOpen ? 0 : '-100%', width: '80%', height: '100%', background: COLORS.card, zIndex: 2000, transition: '0.3s', padding: '40px 20px', borderRight: `1px solid ${COLORS.border}`}}>
-        <Close onClick={() => setMenuOpen(false)} style={{position: 'absolute', right: 20, top: 20, color: COLORS.primary, cursor: 'pointer'}} />
-        <h2 style={{color: COLORS.primary}}>Menu</h2>
-        
-        {/* ADDED: GOAL PROGRESS IN MENU */}
-        <div style={{margin: '20px 0', background: '#000', padding: '15px', borderRadius: '12px', border: `1px solid ${COLORS.border}`}}>
-            <p style={{fontSize: '12px', color: COLORS.textDim}}>Weight Goal: {targetWeight} kg</p>
-            <div style={{width: '100%', height: '8px', background: '#222', borderRadius: '4px', marginTop: '5px'}}>
-                <div style={{width: `${goalProgressPercent}%`, height: '100%', background: COLORS.primary, borderRadius: '4px'}}></div>
-            </div>
-            <p style={{fontSize: '10px', marginTop: '5px', color: COLORS.primary}}>Journey to Target</p>
+    <div className="fitai-app">
+      <style>{css}</style>
+      {/* SIDEBAR */}
+      {menuOpen && <div onClick={() => setMenuOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:1999,backdropFilter:'blur(4px)'}}/>}
+      <div className={`sidebar ${menuOpen ? 'open' : 'closed'}`}>
+        <button onClick={() => setMenuOpen(false)} style={{position:'absolute',right:20,top:20,background:'none',border:'none',cursor:'pointer',color:'#666',display:'flex',alignItems:'center'}}>
+          <Close style={{fontSize:'24px'}}/>
+        </button>
+        <div style={{marginBottom:'32px',marginTop:'8px'}}>
+          <div className="display-font" style={{fontSize:'28px',letterSpacing:'4px',color:'#fff'}}>FITAI</div>
+          <div className="label" style={{marginTop:'6px'}}>{userData.name || 'Athlete'}</div>
         </div>
 
-        <div style={{marginTop: '40px'}}>
-            <p onClick={() => {setActiveTab('progress'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><ShowChart style={{verticalAlign:'middle'}}/> Progress Tracking</p>
-            <p onClick={() => {setActiveTab('planner'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><ListAlt style={{verticalAlign:'middle', color: COLORS.primary, marginRight: '8px'}}/> Weekly Planner</p>
-            <p onClick={() => {setActiveTab('goals'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><EmojiEvents style={{verticalAlign:'middle'}}/> Set My Goals</p>
-            <p onClick={() => {setActiveTab('chat'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><SmartToy style={{verticalAlign:'middle', color: COLORS.primary, marginRight: '8px'}}/> AI Coach</p>
-            <p onClick={() => {setActiveTab('home'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Home style={{verticalAlign:'middle'}}/> Dashboard</p>
-            <p onClick={() => {setActiveTab('profile'); setMenuOpen(false)}} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer'}}><Person style={{verticalAlign:'middle'}}/> Profile Settings</p>
-            <p onClick={handleLogout} style={{padding: '15px 0', borderBottom: '1px solid #222', cursor: 'pointer', color: COLORS.danger}}>
-  Logout
-</p>
+        <div style={{background:'#0a0a0a',border:'1px solid #1a1a1a',borderRadius:'12px',padding:'16px',marginBottom:'28px'}}>
+          <div className="label" style={{marginBottom:'8px'}}>Weight Goal Progress</div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+            <span style={{fontSize:'13px',color:'#888'}}>{userData.weight || '--'} kg</span>
+            <span style={{fontSize:'13px',color:'#fff',fontFamily:"'Space Mono',monospace"}}>{targetWeight} kg</span>
+          </div>
+          <div className="progress-track">
+            <div className="progress-fill" style={{width:`${goalProgressPercent}%`}}/>
+          </div>
+          <div style={{fontSize:'11px',color:'#555',marginTop:'8px',fontFamily:"'Space Mono',monospace"}}>{Math.round(goalProgressPercent)}% to target</div>
+        </div>
+
+        {[
+          {icon:<Home/>, label:'Dashboard', tab:'home'},
+          {icon:<ShowChart/>, label:'Progress', tab:'progress'},
+          {icon:<ListAlt/>, label:'Weekly Planner', tab:'planner'},
+          {icon:<EmojiEvents/>, label:'Set Goals', tab:'goals'},
+          {icon:<SmartToy/>, label:'AI Coach', tab:'chat'},
+          {icon:<Person/>, label:'Profile', tab:'profile'},
+        ].map(item => (
+          <div key={item.tab} className="sidebar-item" onClick={() => {setActiveTab(item.tab);setMenuOpen(false);}}>
+            <span style={{color:'#555',display:'flex'}}>{item.icon}</span>
+            <span>{item.label}</span>
+          </div>
+        ))}
+        <div className="sidebar-item" onClick={handleLogout} style={{color:'#ff4444',borderBottom:'none',marginTop:'8px'}}>
+          <span style={{color:'#ff4444',display:'flex'}}><Close/></span>
+          <span>Sign Out</span>
         </div>
       </div>
 
-      {/* HEADER WITH STREAK */}
+      {/* HEADER */}
       {view === 'app' && (
-        <header style={{padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <Menu onClick={() => setMenuOpen(true)} style={{color: COLORS.primary, cursor: 'pointer'}} />
-          <div style={{display: 'flex', alignItems: 'center', gap: '5px', color: COLORS.primary}}>
-            <LocalFireDepartment /> <span style={{fontWeight: 'bold'}}>{userData.streak} Day Streak</span>
+        <header className="app-header">
+          <button onClick={() => setMenuOpen(true)} style={{background:'none',border:'none',cursor:'pointer',color:'#fff',display:'flex',padding:'4px'}}>
+            <Menu style={{fontSize:'22px'}}/>
+          </button>
+          <div className="display-font" style={{fontSize:'20px',letterSpacing:'4px',color:'#fff'}}>FITAI</div>
+          <div className="streak-badge">
+            <LocalFireDepartment style={{fontSize:'14px',color:'#ff6b35'}}/>
+            <span>{userData.streak}</span>
           </div>
         </header>
       )}
 
       {/* 1. AUTH SCREEN */}
       {view === 'auth' && (
-        <div style={{padding: '40px 20px', textAlign: 'center'}}>
-          <h1 style={{color: COLORS.primary, fontSize: '32px', textShadow: `0 0 10px ${COLORS.primary}`}}>FitAI</h1>
-          <p style={{color: COLORS.textDim, marginBottom: '40px'}}>The Smart Trainer for Poor Gymers</p>
-          <div style={{background: COLORS.card, padding: '25px', borderRadius: '20px', border: `1px solid ${COLORS.border}`}}>
-            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
-            <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
-            <button onClick={handleAuth} style={{width: '100%', padding: '14px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold'}}>
-            {isLogin ? 'Login' : 'Sign Up'}</button>
-            <p onClick={() => setIsLogin(!isLogin)} style={{color: COLORS.primary, cursor: 'pointer', marginTop: '15px'}}>
-  {isLogin ? "Need an account? Sign Up" : "Have an account? Login"}
-</p>
+        <div className="auth-screen fade-up">
+          <div style={{marginBottom:'48px'}}>
+            <div className="auth-logo">FITAI</div>
+            <div className="label" style={{marginTop:'12px',fontSize:'11px'}}>Your intelligent training companion</div>
+          </div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:'12px',marginBottom:'24px'}}>
+            <input type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)}/>
+            <input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)}/>
+          </div>
+
+          <button className="btn-primary" onClick={handleAuth}>
+            {isLogin ? 'Sign In' : 'Create Account'}
+          </button>
+
+          <div style={{marginTop:'24px',textAlign:'center'}}>
+            <span style={{color:'#444',fontSize:'13px'}}>
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+            </span>
+            <span onClick={()=>setIsLogin(!isLogin)} style={{color:'#fff',cursor:'pointer',fontSize:'13px',fontWeight:'600',textDecoration:'underline',textUnderlineOffset:'3px'}}>
+              {isLogin ? 'Sign Up' : 'Log In'}
+            </span>
+          </div>
+
+          <div style={{position:'absolute',bottom:'40px',left:'24px',right:'24px',textAlign:'center'}}>
+            <div className="label" style={{fontSize:'9px',color:'#2a2a2a'}}>TRAIN SMART · EAT RIGHT · TRACK EVERYTHING</div>
           </div>
         </div>
       )}
 
       {/* 2. ONBOARDING SCREEN */}
       {view === 'onboarding' && (
-        <div style={{padding: '20px'}}>
-          <h2 style={{color: COLORS.primary}}>Profile Setup</h2>
-          <div style={{background: COLORS.card, padding: '20px', borderRadius: '20px', marginTop: '20px', border: `1px solid ${COLORS.border}`}}>
-            <input placeholder="Name" onChange={(e) => setUserData({...userData, name: e.target.value})} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
-            <div style={{display: 'flex', gap: '10px'}}>
-               <input placeholder="Weight (kg)" type="number" onChange={(e) => setUserData({...userData, weight: parseFloat(e.target.value)})} style={{background: COLORS.inputBg, color: '#fff', flex: 1, padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
-               <input placeholder="Height (cm)" type="number" onChange={(e) => setUserData({...userData, height: e.target.value})} style={{background: COLORS.inputBg, color: '#fff', flex: 1, padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}} />
+        <div style={{padding:'32px 24px',minHeight:'100vh'}} className="fade-up">
+          <div style={{marginBottom:'32px'}}>
+            <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px',color:'#fff'}}>SETUP</div>
+            <div className="label" style={{marginTop:'8px'}}>Tell us about yourself</div>
+          </div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+            <input placeholder="Your name" onChange={(e)=>setUserData({...userData,name:e.target.value})}/>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              <input placeholder="Weight (kg)" type="number" onChange={(e)=>setUserData({...userData,weight:parseFloat(e.target.value)})}/>
+              <input placeholder="Height (cm)" type="number" onChange={(e)=>setUserData({...userData,height:e.target.value})}/>
             </div>
-            <select onChange={(e) => setUserData({...userData, level: e.target.value})} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', border: `1px solid ${COLORS.border}`}}>
+            <select onChange={(e)=>setUserData({...userData,level:e.target.value})}>
               <option value="beginner">Beginner</option>
               <option value="intermediate">Intermediate</option>
               <option value="pro">Pro</option>
             </select>
-            <p style={{fontSize: '14px', fontWeight: 'bold', color: COLORS.textDim}}>Injuries:</p>
-            <div style={{display: 'flex', gap: '8px', margin: '15px 0'}}>
-              {['Knee', 'Back', 'Shoulder'].map(part => (
-                <button key={part} onClick={() => toggleInjury(part)} style={{padding: '8px 16px', borderRadius: '20px', border: '1px solid #333', background: userData.injuries.includes(part) ? COLORS.danger : COLORS.inputBg, color: '#fff'}}>{part}</button>
-              ))}
+
+            <div style={{marginTop:'8px'}}>
+              <div className="label" style={{marginBottom:'12px'}}>Any injuries? (optional)</div>
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                {['Knee','Back','Shoulder'].map(part=>(
+                  <button key={part} className={`injury-btn ${userData.injuries.includes(part)?'danger':''}`} onClick={()=>toggleInjury(part)}>
+                    {part}
+                  </button>
+                ))}
+              </div>
             </div>
-            <button onClick={saveProfile} style={{width: '100%', padding: '15px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '12px', fontWeight: 'bold'}}>Start Training</button>
+
+            <button className="btn-primary" onClick={saveProfile} style={{marginTop:'16px'}}>
+              Begin Training →
+            </button>
           </div>
         </div>
       )}
 
       {/* 3. HOME DASHBOARD */}
       {view === 'app' && activeTab === 'home' && (
-        <div style={{padding: '0 20px'}}>
-          <h1>Welcome, <span style={{color: COLORS.primary}}>{userData.name}</span>!</h1>
-
-           <div style={{background: 'linear-gradient(135deg, #111 0%, #003311 100%)', padding: '20px', borderRadius: '25px', marginBottom: '25px', border: `1px solid ${COLORS.primary}`}}>
-             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                 <div>
-                     <span style={{fontSize: '12px', color: COLORS.textDim}}>CURRENT RANK</span>
-                     <h3 style={{margin: '0', color: '#fff', textTransform: 'uppercase'}}>{userData.level}</h3>
-                 </div>
-                 <div style={{textAlign: 'right'}}>
-                     <span style={{fontSize: '12px', color: COLORS.textDim}}>FITNESS SCORE</span>
-                     <h3 style={{margin: '0', color: COLORS.primary, fontSize: '24px'}}>{fitnessScore} <span style={{fontSize: '12px'}}>pts</span></h3>
-                 </div>
-             </div>
-             <p style={{fontSize: '11px', color: '#ffd700', marginTop: '15px', fontStyle: 'italic'}}>
-                 {WEEKLY_PLAN[userData.level].nextLevel}
-             </p>
+        <div style={{padding:'24px'}} className="fade-up">
+          {/* GREETING */}
+          <div style={{marginBottom:'28px'}}>
+            <div className="label" style={{marginBottom:'6px'}}>Good day</div>
+            <div className="display-font" style={{fontSize:'clamp(36px,8vw,52px)',lineHeight:'1',letterSpacing:'2px'}}>{userData.name || 'ATHLETE'}</div>
           </div>
-          
-          {/* --- ADDED: DAILY CHECKLIST --- */}
-          <div style={{background: COLORS.card, padding: '15px', borderRadius: '20px', border: `1px solid ${COLORS.border}`, marginBottom: '15px'}}>
-            <h4 style={{margin: '0 0 10px 0', fontSize: '12px', color: COLORS.primary}}>DAILY TARGETS</h4>
-            <div onClick={() => setChecklist({...checklist, water: !checklist.water})} style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer'}}>
-              {checklist.water ? <CheckBox style={{color: COLORS.primary, fontSize: '18px'}}/> : <CheckBoxOutlineBlank style={{color: COLORS.textDim, fontSize: '18px'}}/>}
-              <span style={{color: checklist.water ? COLORS.text : COLORS.textDim, fontSize: '13px', textDecoration: checklist.water ? 'line-through' : 'none'}}>Drink 8 Glasses of Water</span>
+
+          {/* RANK CARD */}
+          <div className="card-featured" style={{marginBottom:'16px',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:'-20px',right:'-20px',fontSize:'120px',opacity:'0.04',fontFamily:"'Bebas Neue',sans-serif",letterSpacing:'0',lineHeight:'1'}}>
+              {userData.level?.toUpperCase()}
             </div>
-            <div onClick={() => setChecklist({...checklist, stretch: !checklist.stretch})} style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer'}}>
-              {checklist.stretch ? <CheckBox style={{color: COLORS.primary, fontSize: '18px'}}/> : <CheckBoxOutlineBlank style={{color: COLORS.textDim, fontSize: '18px'}}/>}
-              <span style={{color: checklist.stretch ? COLORS.text : COLORS.textDim, fontSize: '13px', textDecoration: checklist.stretch ? 'line-through' : 'none'}}>10 Min Warm-up</span>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',position:'relative'}}>
+              <div>
+                <div className="label label-white" style={{marginBottom:'4px'}}>Current Rank</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'28px',letterSpacing:'3px',color:'#000',textTransform:'uppercase'}}>{userData.level}</div>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div className="label label-white" style={{marginBottom:'4px'}}>Fitness Score</div>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'28px',fontWeight:'700',color:'#000'}}>{fitnessScore}</div>
+              </div>
             </div>
-            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-              {checklist.workout ? <CheckBox style={{color: COLORS.primary, fontSize: '18px'}}/> : <CheckBoxOutlineBlank style={{color: COLORS.textDim, fontSize: '18px'}}/>}
-              <span style={{color: checklist.workout ? COLORS.text : COLORS.textDim, fontSize: '13px', textDecoration: checklist.workout ? 'line-through' : 'none'}}>Complete Gym Session</span>
+            <div style={{marginTop:'16px',height:'2px',background:'rgba(0,0,0,0.1)',borderRadius:'1px',overflow:'hidden'}}>
+              <div style={{height:'100%',background:'#000',width:`${Math.min(100,userData.level==='beginner'?(fitnessScore/500)*100:userData.level==='intermediate'?((fitnessScore-500)/1000)*100:100)}%`,transition:'width 1s ease'}}/>
+            </div>
+            <div style={{fontSize:'11px',color:'rgba(0,0,0,0.5)',marginTop:'10px',fontFamily:"'Space Mono',monospace"}}>
+              {WEEKLY_PLAN[userData.level].nextLevel}
             </div>
           </div>
 
-          {/* --- ADDED: WATER TRACKER --- */}
-          <div style={{background: COLORS.card, padding: '15px', borderRadius: '20px', marginBottom: '15px', border: `1px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          {/* STATS ROW */}
+          <div className="stat-grid" style={{marginBottom:'16px'}}>
+            <div className="card" style={{textAlign:'center'}}>
+              <div className="label" style={{marginBottom:'8px'}}>Intake</div>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:'20px',fontWeight:'700',color:'#fff'}}>{todaysCalsIntake}</div>
+              <div style={{fontSize:'10px',color:'#555',marginTop:'2px'}}>kcal</div>
+            </div>
+            <div className="card" style={{textAlign:'center'}}>
+              <div className="label" style={{marginBottom:'8px'}}>Burnt</div>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:'20px',fontWeight:'700',color:'#ff6b6b'}}>{todaysCalsBurnt}</div>
+              <div style={{fontSize:'10px',color:'#555',marginTop:'2px'}}>kcal</div>
+            </div>
+          </div>
+
+          {/* WEIGHT */}
+          <div className="card" style={{marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <div>
-                <span style={{fontSize: '11px', fontWeight: 'bold', color: COLORS.textDim}}>HYDRATION STATUS</span>
-                <h3 style={{margin: '5px 0', color: '#00d2ff'}}>{waterGlasses} / 8 Glasses</h3>
+              <div className="label" style={{marginBottom:'6px'}}>Body Weight</div>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:'28px',fontWeight:'700',color:'#fff'}}>
+                {userData.weight || '--'} <span style={{fontSize:'14px',color:'#555'}}>kg</span>
+              </div>
             </div>
-            <button 
-              onClick={handleAddWater} 
-              style={{background: '#00BFFF', color: '#fff', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', boxShadow: '0 0 10px rgba(0, 191, 255, 0.4)'}}
-            >
-              <LocalDrink />
-            </button>
-          </div>
-          
-          <div style={{background: COLORS.card, padding: '25px', borderRadius: '25px', textAlign: 'center', margin: '15px 0', border: `1px solid ${COLORS.border}`}}>
-            <span style={{fontSize: '12px', color: COLORS.textDim, fontWeight: 'bold'}}>CURRENT WEIGHT</span>
-            <h2 style={{fontSize: '32px', margin: '5px 0 0 0', color: COLORS.primary}}>
-              {userData.weight ? `${userData.weight} kg` : '-- kg'}
-            </h2>
-            {/* The Trending Up/Down Indicator */}
             {userData.lastWeight && userData.lastWeight !== userData.weight && (
-              <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', color: weightDiff > 0 ? COLORS.danger : COLORS.primary}}>
-                {weightDiff > 0 ? <TrendingUp /> : <TrendingDown />}
-                <span style={{fontSize: '14px'}}>{Math.abs(weightDiff)}% from previous check-in</span>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',color:weightDiff>0?'#ff6b6b':'#6bff9e',fontSize:'13px',fontFamily:"'Space Mono',monospace"}}>
+                {weightDiff>0?<TrendingUp style={{fontSize:'18px'}}/>:<TrendingDown style={{fontSize:'18px'}}/>}
+                {Math.abs(weightDiff)}%
               </div>
             )}
           </div>
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
-            <div style={{background: COLORS.card, padding: '15px', borderRadius: '20px', border: `1px solid ${COLORS.border}`}}>
-              <span style={{fontSize: '11px', fontWeight: 'bold', color: COLORS.primary}}>INTAKE</span>
-              <h3 style={{margin: '5px 0'}}>{todaysCalsIntake} kcal</h3>
+
+          {/* DAILY CHECKLIST */}
+          <div className="card" style={{marginBottom:'16px'}}>
+            <div className="label" style={{marginBottom:'4px'}}>Daily Targets</div>
+            {[
+              {key:'water',label:'Drink 8 glasses of water'},
+              {key:'stretch',label:'10 min warm-up'},
+              {key:'workout',label:'Complete gym session',readonly:true},
+            ].map(item=>(
+              <div key={item.key} className="check-item" onClick={()=>!item.readonly&&setChecklist({...checklist,[item.key]:!checklist[item.key]})}>
+                <div style={{width:'18px',height:'18px',border:`1.5px solid ${checklist[item.key]?'#00e676':'#333'}`,borderRadius:'4px',background:checklist[item.key]?'#00e676':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.2s'}}>
+                  {checklist[item.key] && <span style={{color:'#000',fontSize:'11px',fontWeight:'bold'}}>✓</span>}
+                </div>
+                <span style={{fontSize:'14px',color:checklist[item.key]?'#555':'#aaa',textDecoration:checklist[item.key]?'line-through':'none',transition:'all 0.2s'}}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* WATER TRACKER */}
+          <div className="card" style={{marginBottom:'16px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+              <div>
+                <div className="label" style={{marginBottom:'4px'}}>Hydration</div>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'18px',color:waterGlasses>=8?'#00e676':'#888'}}>
+                  {waterGlasses}<span style={{color:'#333'}}>/8</span>
+                </div>
+              </div>
+              <button onClick={handleAddWater} style={{background:'#00e676',border:'none',borderRadius:'100px',padding:'10px 20px',cursor:'pointer',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",fontWeight:'600',display:'flex',alignItems:'center',gap:'6px'}}>
+                <LocalDrink style={{fontSize:'16px',color:'#000'}}/> Add Glass
+              </button>
             </div>
-            <div style={{background: COLORS.card, padding: '15px', borderRadius: '20px', border: `1px solid ${COLORS.border}`}}>
-              <span style={{fontSize: '11px', fontWeight: 'bold', color: COLORS.danger}}>BURNT</span>
-              <h3 style={{margin: '5px 0'}}>{todaysCalsBurnt} kcal</h3>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+              {Array.from({length:8},(_,i)=>(
+                <div key={i} className={`water-dot ${i<waterGlasses?'filled':''}`}/>
+              ))}
             </div>
           </div>
 
-          <div style={{background: COLORS.card, padding: '20px', borderRadius: '20px', border: `1px solid ${COLORS.border}`, marginBottom: '20px'}}>
-            <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px'}}>
-                <ListAlt style={{color: COLORS.primary}}/>
-                <h3 style={{fontSize: '16px', margin:0}}>Previous Session Card</h3>
+          {/* LAST SESSION */}
+          {history.length>0 && (
+            <div className="card">
+              <div className="label" style={{marginBottom:'12px'}}>Last Session</div>
+              <div style={{fontFamily:"'Space Mono',monospace",fontSize:'12px',color:'#fff',marginBottom:'8px'}}>{history[0].date} · {history[0].mode}</div>
+              <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+                {history[0].details.slice(0,3).map((d,i)=>(
+                  <div key={i} style={{fontSize:'13px',color:'#555',paddingLeft:'0'}}>{d}</div>
+                ))}
+              </div>
             </div>
-            {history.length > 0 ? (
-                <div>
-                    <p style={{fontSize: '14px', fontWeight: 'bold', color: COLORS.primary}}>{history[0].date} • {history[0].mode}</p>
-                    <ul style={{fontSize: '13px', color: COLORS.textDim, paddingLeft: '15px', marginTop: '5px'}}>
-                        {history[0].details.map((d, i) => <li key={i}>{d}</li>)}
-                    </ul>
-                </div>
-            ) : <p style={{fontSize: '13px', color: COLORS.textDim}}>No session found.</p>}
-          </div>
+          )}
         </div>
       )}
 
-      {/* --- ADDED: NEW SMART GOALS TAB (FIXED) --- */}
+      {/* --- SMART GOALS TAB --- */}
       {view === 'app' && activeTab === 'goals' && (
-        <div style={{padding: '20px'}}>
-          <h2 style={{color: COLORS.primary, fontWeight: '900'}}>SET SMART GOALS</h2>
-          <div style={{background: COLORS.card, padding: '30px', borderRadius: '25px', marginTop: '20px', border: `1px solid ${COLORS.border}`}}>
-             <label style={{color: COLORS.textDim, fontSize: '12px'}}>TARGET BODY WEIGHT (KG)</label>
-             <input type="number" value={targetWeight} onChange={(e) => setTargetWeight(parseFloat(e.target.value) || 0)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '15px', margin: '10px 0 25px 0', border: `1px solid ${COLORS.border}`, borderRadius: '10px'}} />
-             
-             <label style={{color: COLORS.textDim, fontSize: '12px'}}>DAILY CALORIE TARGET</label>
-             <input type="number" value={dailyCalsGoal} onChange={(e) => setDailyCalsGoal(parseFloat(e.target.value) || 0)} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '15px', margin: '10px 0 25px 0', border: `1px solid ${COLORS.border}`, borderRadius: '10px'}} />
-             
-            <button onClick={saveGoalsToDatabase} style={{width: '100%', padding: '18px', background: COLORS.primary, color: '#000', fontWeight: '900', borderRadius: '12px', border: 'none'}}>SAVE GOALS</button>
+        <div style={{padding:'24px'}} className="fade-up">
+          <div style={{marginBottom:'28px'}}>
+            <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>GOALS</div>
+            <div className="label" style={{marginTop:'6px'}}>Define your targets</div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+            <div className="card">
+              <div className="label" style={{marginBottom:'10px'}}>Target Body Weight (kg)</div>
+              <input type="number" value={targetWeight} onChange={(e)=>setTargetWeight(parseFloat(e.target.value)||0)}/>
+            </div>
+            <div className="card">
+              <div className="label" style={{marginBottom:'10px'}}>Daily Calorie Target</div>
+              <input type="number" value={dailyCalsGoal} onChange={(e)=>setDailyCalsGoal(parseFloat(e.target.value)||0)}/>
+            </div>
+            <button className="btn-primary" onClick={saveGoalsToDatabase}>Save Goals</button>
           </div>
         </div>
       )}
 
       {/* PROGRESS TRACKING TAB */}
       {view === 'app' && activeTab === 'progress' && (
-        <div style={{padding: '20px'}}>
-          <h2 style={{color: COLORS.primary}}>7-Day Progress</h2>
-          
-          {/* --- ADDED: WEIGHT LIFTED ANALYSIS & AI SUGGESTION --- */}
-          <div style={{background: COLORS.card, padding: '20px', borderRadius: '20px', border: `1px solid ${COLORS.border}`, marginTop: '20px'}}>
-             <h4 style={{margin: '0 0 15px 0', fontSize: '14px', color: COLORS.primary}}>WEIGHT LIFTED ANALYSIS</h4>
-             {history.filter(h => h.exercisesData).length > 0 ? history.filter(h => h.exercisesData).slice(0, 3).map((h, i) => (
-               <div key={i} style={{marginBottom: '15px', borderBottom: '1px solid #222', paddingBottom: '10px'}}>
-                 <p style={{fontSize: '12px', color: COLORS.textDim}}>{h.date} - Total Vol: {h.exercisesData.reduce((sum, e) => sum + (e.weight * e.reps * e.sets), 0)} kg</p>
-                 {h.exercisesData.map((ex, idx) => {
-                   // Dynamic AI Logic based on sets, reps, and weight
-                // Dynamic AI Logic based on sets, reps, and weight
-                   let aiTip = `AI: Focus on slow, controlled eccentric movements for ${ex.name}.`;
-                   
-                   // 1. Check sets first (Volume priority)
-                   if (ex.sets > 0 && ex.sets < 3) {
-                     aiTip = `AI: Good start on ${ex.name}. Try doing 3-4 sets next time for optimal volume.`;
-                   } 
-                   // 2. Check bodyweight high reps
-                   else if (ex.weight == 0 && ex.reps >= 15) {
-                     aiTip = `AI: Great endurance! Consider adding resistance to ${ex.name} for more muscle growth.`;
-                   } 
-                   // 3. Check weighted high reps
-                   else if (ex.weight > 0 && ex.reps >= 8) {
-                     aiTip = `AI: You hit ${ex.reps} reps! Try increasing ${ex.name} to ${Number(ex.weight) + 2.5}kg next session.`;
-                   }
-
-                   return (
-                     <div key={idx} style={{marginBottom: '15px'}}>
-                       <div style={{display:'flex', justifyContent:'space-between', fontSize: '13px', paddingBottom: '4px'}}>
-                         <span style={{color: '#fff', fontWeight: 'bold'}}>{ex.name}</span>
-                         <span style={{color: COLORS.primary}}>{ex.weight}kg x {ex.reps}r x {ex.sets}s</span>
-                       </div>
-                       <div style={{marginTop: '4px', fontSize: '11px', color: '#ffd700', display: 'flex', alignItems: 'center', background: 'rgba(255, 215, 0, 0.1)', padding: '8px', borderRadius: '5px'}}>
-                          <Info style={{fontSize: '15px', marginRight: '6px'}}/> 
-                          {aiTip}
-                       </div>
-                     </div>
-                   );
-                 })}
-               </div>
-             )) : <p style={{color: COLORS.textDim, fontSize: '13px'}}>Complete a session to see weight analytics.</p>}
+        <div style={{padding:'24px'}} className="fade-up">
+          <div style={{marginBottom:'28px'}}>
+            <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>PROGRESS</div>
+            <div className="label" style={{marginTop:'6px'}}>7-day overview</div>
           </div>
-
-          <div style={{background: COLORS.card, padding: '20px', borderRadius: '20px', border: `1px solid ${COLORS.border}`, marginTop: '20px'}}>
-            <p style={{margin: '0 0 5px 0'}}><strong>Total Burnt Today:</strong> <span style={{color: COLORS.danger}}>{todaysCalsBurnt} kcal</span></p>
-            <p style={{margin: 0}}><strong>Total Intake Today:</strong> <span style={{color: '#00d2ff'}}>{todaysCalsIntake} kcal</span></p>
-            
-            {/* THE BARS */}
-            <div style={{display:'flex', gap:'8px', alignItems:'flex-end', height:'100px', marginTop:'20px'}}>
-               {getDynamicChartData().map((data, i) => (
-                 <div 
-                   key={i} 
-                   onClick={() => setSelectedGraphDay(data)}
-                   style={{
-                     flex: 1, 
-                     background: selectedGraphDay?.date === data.date ? '#00d2ff' : COLORS.primary, // Turns blue when clicked
-                     height: `${data.heightPercent}%`, 
-                     borderRadius: '4px',
-                     cursor: 'pointer',
-                     transition: 'all 0.3s ease',
-                     boxShadow: selectedGraphDay?.date === data.date ? '0 0 10px #00d2ff' : 'none'
-                   }}
-                 ></div>
-               ))}
-            </div>
-
-            {/* THE DAY LABELS (M, T, W, T, F, S, S) */}
-            <div style={{display:'flex', gap:'8px', marginTop:'8px'}}>
-               {getDynamicChartData().map((data, i) => (
-                 <div key={i} style={{flex: 1, textAlign: 'center', fontSize: '11px', color: COLORS.textDim, fontWeight: 'bold'}}>
-                   {data.dayName.charAt(0)}
-                 </div>
-               ))}
+          
+          {/* CALORIE CHART */}
+          <div className="card" style={{marginBottom:'16px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:'20px'}}>
+              <div>
+                <div className="label" style={{marginBottom:'4px'}}>Today Burnt</div>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'20px',color:'#ff6b6b'}}>{todaysCalsBurnt} <span style={{fontSize:'11px',color:'#555'}}>kcal</span></div>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div className="label" style={{marginBottom:'4px'}}>Today Intake</div>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'20px',color:'#fff'}}>{todaysCalsIntake} <span style={{fontSize:'11px',color:'#555'}}>kcal</span></div>
+              </div>
             </div>
             
-            {/* THE POP-UP DETAILS WHEN A BAR IS CLICKED */}
-            {selectedGraphDay ? (
-              <div style={{marginTop: '20px', padding: '15px', background: '#111', borderRadius: '12px', border: `1px dashed ${COLORS.primary}`, textAlign: 'center'}}>
-                <span style={{color: COLORS.primary, fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '10px'}}>{selectedGraphDay.date}</span>
-                <div style={{display: 'flex', justifyContent: 'space-around'}}>
-                  <div><span style={{color: COLORS.danger, fontSize: '18px', fontWeight: 'bold'}}>{selectedGraphDay.burnt}</span><br/><span style={{fontSize: '10px', color: COLORS.textDim}}>KCAL BURNT</span></div>
-                  <div><span style={{color: '#00d2ff', fontSize: '18px', fontWeight: 'bold'}}>{selectedGraphDay.intake}</span><br/><span style={{fontSize: '10px', color: COLORS.textDim}}>KCAL INTAKE</span></div>
+            <div style={{display:'flex',gap:'6px',alignItems:'flex-end',height:'80px'}}>
+              {getDynamicChartData().map((data,i)=>(
+                <div key={i} className={`chart-bar ${selectedGraphDay?.date===data.date?'selected':''}`}
+                  style={{height:`${data.heightPercent}%`}}
+                  onClick={()=>setSelectedGraphDay(data)}/>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:'6px',marginTop:'8px'}}>
+              {getDynamicChartData().map((data,i)=>(
+                <div key={i} style={{flex:1,textAlign:'center',fontSize:'10px',color:'#444',fontFamily:"'Space Mono',monospace"}}>
+                  {data.dayName.charAt(0)}
+                </div>
+              ))}
+            </div>
+            {selectedGraphDay && (
+              <div style={{marginTop:'16px',padding:'16px',background:'#111',borderRadius:'12px',border:'1px solid #1e1e1e',display:'flex',justifyContent:'space-around'}}>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'Space Mono',monospace",fontSize:'20px',color:'#ff6b6b'}}>{selectedGraphDay.burnt}</div>
+                  <div className="label" style={{marginTop:'4px'}}>kcal burnt</div>
+                </div>
+                <div style={{width:'1px',background:'#1e1e1e'}}/>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontFamily:"'Space Mono',monospace",fontSize:'20px',color:'#fff'}}>{selectedGraphDay.intake}</div>
+                  <div className="label" style={{marginTop:'4px'}}>kcal intake</div>
                 </div>
               </div>
-            ) : (
-              <p style={{fontSize: '11px', textAlign: 'center', marginTop: '20px', color: COLORS.textDim}}>👆 Tap a bar to see daily details</p>
             )}
+            {!selectedGraphDay && <div style={{textAlign:'center',fontSize:'11px',color:'#333',marginTop:'12px',fontFamily:"'Space Mono',monospace"}}>tap a bar to see details</div>}
+          </div>
+
+          {/* WEIGHT LIFTED ANALYSIS */}
+          <div className="card">
+            <div className="label" style={{marginBottom:'16px'}}>Weight Analysis</div>
+            {history.filter(h=>h.exercisesData).length>0 ? history.filter(h=>h.exercisesData).slice(0,3).map((h,i)=>(
+              <div key={i} style={{marginBottom:'20px',paddingBottom:'20px',borderBottom:'1px solid #111'}}>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'11px',color:'#555',marginBottom:'12px'}}>
+                  {h.date} · {h.exercisesData.reduce((s,e)=>s+(e.weight*e.reps*e.sets),0)} kg total vol
+                </div>
+                {h.exercisesData.map((ex,idx)=>{
+                  let aiTip=`Focus on slow, controlled eccentric movements for ${ex.name}.`;
+                  if(ex.sets>0&&ex.sets<3)aiTip=`Try 3-4 sets next time for optimal volume on ${ex.name}.`;
+                  else if(ex.weight==0&&ex.reps>=15)aiTip=`Consider adding resistance to ${ex.name} for muscle growth.`;
+                  else if(ex.weight>0&&ex.reps>=8)aiTip=`Try increasing ${ex.name} to ${Number(ex.weight)+2.5}kg next session.`;
+                  return(
+                    <div key={idx} style={{marginBottom:'12px'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
+                        <span style={{fontSize:'14px',fontWeight:'600'}}>{ex.name}</span>
+                        <span style={{fontFamily:"'Space Mono',monospace",fontSize:'12px',color:'#888'}}>{ex.weight}kg×{ex.reps}×{ex.sets}</span>
+                      </div>
+                      <div style={{fontSize:'12px',color:'#666',background:'#111',padding:'8px 12px',borderRadius:'8px',border:'1px solid #1a1a1a'}}>
+                        💡 {aiTip}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )):<div style={{fontSize:'13px',color:'#444',textAlign:'center',padding:'24px 0'}}>Complete a session to see analytics</div>}
           </div>
         </div>
       )}
 
-      {/* RESTAURANT (TRIPLE PHASE NUTRITION) */}
+      {/* NUTRITION TAB */}
       {view === 'app' && activeTab === 'restaurant' && (
-        <div style={{padding: '20px'}}>
-          <h2 style={{color: COLORS.primary}}>Nutrition Journal</h2>
-          {['Breakfast', 'Lunch', 'Dinner'].map(mealType => (
-            <div key={mealType} style={{background: COLORS.card, padding: '15px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${COLORS.border}`}}>
-              <div style={{display:'flex', alignItems:'center', gap: '8px', marginBottom:'10px'}}>
-                <Fastfood style={{color: COLORS.primary}}/>
-                <h4 style={{margin:0}}>{mealType}</h4>
+        <div style={{padding:'24px'}} className="fade-up">
+          <div style={{marginBottom:'28px'}}>
+            <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>NUTRITION</div>
+            <div className="label" style={{marginTop:'6px'}}>Track your meals</div>
+          </div>
+
+          {['Breakfast','Lunch','Dinner'].map(mealType=>(
+            <div key={mealType} className="card" style={{marginBottom:'12px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
+                <Fastfood style={{fontSize:'16px',color:'#555'}}/>
+                <div className="label">{mealType}</div>
               </div>
-              <select 
-                onChange={(e) => {
-                  const foodName = e.target.value;
-                  const kcalVal = FOOD_DB[mealType.toLowerCase()][foodName];
-                  if(kcalVal) {
-                     logFoodToDatabase(mealType, foodName, kcalVal);
-                     e.target.value = "Select from 100+ items..."; // Resets the dropdown after selecting
-                  }
-                }} 
-                style={{width: '100%', background: COLORS.inputBg, color: '#fff', padding: '10px', border: `1px solid ${COLORS.border}`, borderRadius: '8px'}}
-              >
-                <option>Select from food items...</option>
-                {Object.keys(FOOD_DB[mealType.toLowerCase()]).map(item => <option key={item} value={item}>{item}</option>)}
+              <select onChange={(e)=>{
+                const foodName=e.target.value;
+                const kcalVal=FOOD_DB[mealType.toLowerCase()][foodName];
+                if(kcalVal){logFoodToDatabase(mealType,foodName,kcalVal);e.target.value="Select food...";}
+              }}>
+                <option>Select food...</option>
+                {Object.keys(FOOD_DB[mealType.toLowerCase()]).map(item=><option key={item} value={item}>{item}</option>)}
               </select>
             </div>
           ))}
-          <h3 style={{fontSize: '14px', color: COLORS.textDim, marginTop: '20px'}}>Logged Today ({today})</h3>
-          {foodJournal.filter(f => f.date === today).map((f, i) => (
-            <div key={i} style={{background: COLORS.card, padding: '10px', borderRadius: '8px', marginBottom: '5px', display: 'flex', justifyContent: 'space-between', fontSize: '12px'}}>
-              <span>{f.meal}: {f.name}</span>
-              <strong style={{color: COLORS.primary}}>{f.kcal} kcal</strong>
+
+          {foodJournal.filter(f=>f.date===today).length>0 && (
+            <div style={{marginTop:'24px'}}>
+              <div className="label" style={{marginBottom:'12px'}}>Logged Today</div>
+              {foodJournal.filter(f=>f.date===today).map((f,i)=>(
+                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid #111'}}>
+                  <div>
+                    <div style={{fontSize:'14px',color:'#fff'}}>{f.name}</div>
+                    <div className="label" style={{marginTop:'2px'}}>{f.meal}</div>
+                  </div>
+                  <div style={{fontFamily:"'Space Mono',monospace",fontSize:'14px',color:'#888'}}>{f.kcal} kcal</div>
+                </div>
+              ))}
+              <div style={{display:'flex',justifyContent:'space-between',padding:'14px 0',borderTop:'1px solid #333',marginTop:'4px'}}>
+                <span style={{fontSize:'13px',color:'#666'}}>Total</span>
+                <span style={{fontFamily:"'Space Mono',monospace",fontSize:'14px',color:'#fff'}}>{todaysCalsIntake} kcal</span>
+              </div>
             </div>
-          ))}
+          )}
         </div>
       )}
 
       {/* PROFILE TAB */}
       {view === 'app' && activeTab === 'profile' && (
-        <div style={{padding: '20px'}}>
-          <h2 style={{color: COLORS.primary}}>Edit Profile</h2>
-          <div style={{background: COLORS.card, padding: '20px', borderRadius: '20px', border: `1px solid ${COLORS.border}`}}>
-             <label style={{fontSize:'12px', color:COLORS.textDim}}>Weight (kg)</label>
-             <input type="number" value={userData.weight} onChange={(e) => setUserData({...userData, weight: parseFloat(e.target.value)})} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginBottom: '15px'}} />
-             
-             <label style={{fontSize:'12px', color:COLORS.textDim}}>Injuries</label>
-             <div style={{display: 'flex', gap: '8px', margin: '10px 0'}}>
-              {['Knee', 'Back', 'Shoulder'].map(part => (
-                <button key={part} onClick={() => toggleInjury(part)} style={{padding: '8px 16px', borderRadius: '20px', border: 'none', background: userData.injuries.includes(part) ? COLORS.danger : COLORS.inputBg, color: '#fff'}}>{part}</button>
-              ))}
+        <div style={{padding:'24px'}} className="fade-up">
+          <div style={{marginBottom:'28px'}}>
+            <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>PROFILE</div>
+            <div className="label" style={{marginTop:'6px'}}>Update your stats</div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+            <div className="card">
+              <div className="label" style={{marginBottom:'10px'}}>Weight (kg)</div>
+              <input type="number" value={userData.weight} onChange={(e)=>setUserData({...userData,weight:parseFloat(e.target.value)})}/>
             </div>
-            
-            <label style={{fontSize:'12px', color:COLORS.textDim}}>Level</label>
-            <select value={userData.level} onChange={(e) => setUserData({...userData, level: e.target.value})} style={{background: COLORS.inputBg, color: '#fff', width: '100%', padding: '12px', marginTop: '10px', border: 'none'}}>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="pro">Pro</option>
-            </select>
-           <button 
-              onClick={saveProfileChanges} 
-              style={{width: '100%', padding: '14px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', marginTop: '25px'}}
-            >
-              <Save style={{verticalAlign: 'middle', marginRight: '5px'}}/> Save Profile Changes
-            </button> 
+            <div className="card">
+              <div className="label" style={{marginBottom:'12px'}}>Injuries</div>
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                {['Knee','Back','Shoulder'].map(part=>(
+                  <button key={part} className={`injury-btn ${userData.injuries.includes(part)?'danger':''}`} onClick={()=>toggleInjury(part)}>{part}</button>
+                ))}
+              </div>
+            </div>
+            <div className="card">
+              <div className="label" style={{marginBottom:'10px'}}>Training Level</div>
+              <select value={userData.level} onChange={(e)=>setUserData({...userData,level:e.target.value})}>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="pro">Pro</option>
+              </select>
+            </div>
+            <button className="btn-primary" onClick={saveProfileChanges}>Save Changes</button>
           </div>
         </div>
       )}
      
 
-      {/* GYM TAB (KEEPING YOUR EXACT EXISTING LOGIC) */}
+      {/* GYM TAB */}
       {view === 'app' && activeTab === 'gym' && (
-        <div style={{padding: '20px'}}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <h2>Training Center</h2>
-            <div onClick={() => setIsTimerRunning(!isTimerRunning)} style={{display: 'flex', alignItems: 'center', background: '#1a1a1a', padding: '8px 15px', borderRadius: '20px', color: COLORS.primary, cursor: 'pointer', border: `1px solid ${COLORS.primary}`}}>
-              <Timer style={{fontSize: '18px', marginRight: '5px'}} />
-              <span>{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}</span>
+        <div style={{padding:'24px'}} className="fade-up">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px'}}>
+            <div>
+              <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>TRAIN</div>
+              <div className="label" style={{marginTop:'6px'}}>Log your session</div>
+            </div>
+            <div onClick={()=>setIsTimerRunning(!isTimerRunning)} style={{display:'flex',flexDirection:'column',alignItems:'center',background:isTimerRunning?'#00e676':'#111',border:'1px solid #222',borderRadius:'12px',padding:'10px 16px',cursor:'pointer',transition:'all 0.2s'}}>
+              <Timer style={{fontSize:'16px',color:isTimerRunning?'#000':'#666'}}/>
+              <span style={{fontFamily:"'Space Mono',monospace",fontSize:'14px',fontWeight:'700',color:isTimerRunning?'#000':'#fff',marginTop:'4px'}}>
+                {Math.floor(seconds/60)}:{String(seconds%60).padStart(2,'0')}
+              </span>
             </div>
           </div>
-          <div style={{display: 'flex', gap: '8px', margin: '15px 0'}}>
-            {['Home', 'Travel', 'Gym'].map(m => (
-              <button key={m} onClick={() => setGymMode(m.toLowerCase())} style={{padding: '8px 16px', borderRadius: '20px', border: 'none', background: gymMode === m.toLowerCase() ? COLORS.primary : COLORS.card, color: gymMode === m.toLowerCase() ? '#000' : COLORS.textDim, fontWeight: 'bold'}}>{m}</button>
+
+          <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
+            {['Home','Travel','Gym'].map(m=>(
+              <button key={m} className={`btn-outline ${gymMode===m.toLowerCase()?'active':''}`} onClick={()=>setGymMode(m.toLowerCase())}>
+                {m}
+              </button>
             ))}
           </div>
-          {filteredEx.map((ex, i) => (
-            <div key={i} style={{background: COLORS.card, padding: '15px', borderRadius: '15px', marginBottom: '10px', borderLeft: `5px solid ${COLORS.primary}`}}>
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                <div>
-                  <strong style={{fontSize: '16px', display: 'block'}}>{ex.name}</strong>
-                  <span style={{fontSize: '12px', color: COLORS.primary, fontWeight: 'bold', background: 'rgba(0, 230, 118, 0.1)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '4px'}}>
-                    Suggested: {getVolumeSuggestion(userData.level)}
-                  </span>
-                  {/* --- ADDED: EXERCISE TIP --- */}
-                  <div style={{fontSize: '11px', color: COLORS.textDim, marginTop: '6px', fontStyle: 'italic'}}>
-                    💡 Tip: {ex.tip}
-                  </div>
+
+          {filteredEx.map((ex,i)=>(
+            <div key={i} className="ex-card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'12px'}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:'16px',fontWeight:'600',marginBottom:'4px'}}>{ex.name}</div>
+                  <div className="label" style={{marginBottom:'6px'}}>{getVolumeSuggestion(userData.level)}</div>
+                  <div style={{fontSize:'12px',color:'#555',fontStyle:'italic'}}>💡 {ex.tip}</div>
                 </div>
-                <span style={{fontSize: '12px', color: '#ffd700', display: 'flex', alignItems: 'center'}}><EmojiEvents style={{fontSize: '14px', marginRight: '2px'}}/> {pbs[ex.name] || 0}kg</span>
-              </div>
-              <div style={{margin: '12px 0 8px 0', display: 'flex', gap: '5px'}}>
-                <input type="number" placeholder="Sets" style={{background: COLORS.inputBg, color: '#fff', border: `1px solid ${COLORS.border}`, width: '50px', padding: '6px', borderRadius: '4px'}} 
-                  onChange={(e) => handleSessionUpdate(ex.name, 'sets', e.target.value)} />
-                <input type="number" placeholder="Reps" style={{background: COLORS.inputBg, color: '#fff', border: `1px solid ${COLORS.border}`, width: '50px', padding: '6px', borderRadius: '4px'}} 
-                  onChange={(e) => handleSessionUpdate(ex.name, 'reps', e.target.value)} />
-                <input id={`pb-${i}`} type="number" placeholder="kg" style={{background: COLORS.inputBg, color: '#fff', border: `1px solid ${COLORS.border}`, width: '60px', padding: '6px', borderRadius: '4px'}} 
-                  onChange={(e) => handleSessionUpdate(ex.name, 'weight', e.target.value)} />
-                <button onClick={() => setPbs({...pbs, [ex.name]: document.getElementById(`pb-${i}`).value})} style={{background: COLORS.primary, color: '#000', border: 'none', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold'}}><Save/></button>
-              </div>
-              {/* --- UPDATED: VIDEO & AI TRACKER BUTTONS --- */}
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px'}}>
-                <div onClick={() => setActiveVideo(activeVideo === i ? null : i)} style={{fontSize: '12px', color: COLORS.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: 'bold'}}>
-                  {activeVideo === i ? <Close style={{fontSize: '16px', marginRight: '4px'}}/> : <PlayCircleOutline style={{fontSize: '16px', marginRight: '4px'}}/>} 
-                  {activeVideo === i ? 'Close Video' : 'Watch Form Guide'}
-                </div>
-                
-                <div onClick={() => {setActiveAiExercise(ex); setAiReps(0); setAiModalOpen(true); speakFeedback(`Starting AI Tracker for ${ex.name}. Please step back.`);}} style={{fontSize: '12px', color: '#00d2ff', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: 'bold', background: 'rgba(0, 210, 255, 0.1)', padding: '5px 10px', borderRadius: '20px', border: '1px solid #00d2ff'}}>
-                  <PlayCircleOutline style={{fontSize: '16px', marginRight: '4px'}}/> START AI TRACKER
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',marginLeft:'12px'}}>
+                  <div style={{fontFamily:"'Space Mono',monospace",fontSize:'11px',color:'#555'}}>{pbs[ex.name]||0} kg PB</div>
+                  <div style={{fontSize:'10px',color:'#555',fontFamily:"'Space Mono',monospace"}}>{ex.burn} cal/set</div>
                 </div>
               </div>
 
-              {/* --- RESTORED: YOUTUBE VIDEO PLAYER --- */}
-              {activeVideo === i && (
-                <div style={{marginTop: '15px', borderRadius: '15px', overflow: 'hidden', background: '#000', height: '240px', border: `1px solid ${COLORS.border}`}}>
-                   <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${ex.embedId}`} title="Tutorial" frameBorder="0" allowFullScreen></iframe>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr auto',gap:'8px',marginBottom:'12px'}}>
+                <input type="number" placeholder="Sets" style={{padding:'10px !important'}} onChange={(e)=>handleSessionUpdate(ex.name,'sets',e.target.value)}/>
+                <input type="number" placeholder="Reps" style={{padding:'10px !important'}} onChange={(e)=>handleSessionUpdate(ex.name,'reps',e.target.value)}/>
+                <input id={`pb-${i}`} type="number" placeholder="kg" style={{padding:'10px !important'}} onChange={(e)=>handleSessionUpdate(ex.name,'weight',e.target.value)}/>
+                <button onClick={()=>setPbs({...pbs,[ex.name]:document.getElementById(`pb-${i}`).value})} style={{background:'#00e676',border:'none',borderRadius:'8px',padding:'10px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <Save style={{fontSize:'16px',color:'#000'}}/>
+                </button>
+              </div>
+
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <button className="btn-ghost" style={{fontSize:'12px',display:'flex',alignItems:'center',gap:'6px',color:activeVideo===i?'#fff':'#555'}} onClick={()=>setActiveVideo(activeVideo===i?null:i)}>
+                  {activeVideo===i?<Close style={{fontSize:'15px'}}/>:<PlayCircleOutline style={{fontSize:'15px'}}/>}
+                  {activeVideo===i?'Close':'Form Guide'}
+                </button>
+                <button onClick={()=>{setActiveAiExercise(ex);setAiReps(0);setAiModalOpen(true);speakFeedback(`Starting AI Tracker for ${ex.name}. Please step back.`);}}
+                  style={{background:'transparent',border:'1px solid #333',borderRadius:'100px',padding:'6px 14px',cursor:'pointer',fontSize:'12px',color:'#aaa',fontFamily:"'DM Sans',sans-serif",display:'flex',alignItems:'center',gap:'6px',transition:'all 0.2s'}}
+                  onMouseOver={e=>e.currentTarget.style.borderColor='#00e676'}
+                  onMouseOut={e=>e.currentTarget.style.borderColor='#333'}
+                >
+                  <PlayCircleOutline style={{fontSize:'14px'}}/> AI Tracker
+                </button>
+              </div>
+
+              {activeVideo===i && (
+                <div style={{marginTop:'12px',borderRadius:'12px',overflow:'hidden',height:'220px',border:'1px solid #1e1e1e'}}>
+                  <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${ex.embedId}`} title="Tutorial" frameBorder="0" allowFullScreen/>
                 </div>
               )}
             </div>
           ))}
-          <button onClick={saveWorkout} style={{width: '100%', padding: '14px', background: COLORS.primary, color: '#000', border: 'none', borderRadius: '12px', fontWeight: 'bold', marginTop: '10px'}}><CheckCircle style={{verticalAlign: 'middle', marginRight: '5px'}}/> Finish & Save Log</button>
+
+          <button className="btn-primary" onClick={saveWorkout} style={{marginTop:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+            <CheckCircle style={{fontSize:'18px'}}/> Finish & Save Log
+          </button>
         </div>
       )}
 
-     {/* --- HISTORY TAB (GOOGLE FIT STYLE - CRASH FIXED) --- */}
+     {/* --- HISTORY TAB --- */}
       {view === 'app' && activeTab === 'history' && (() => {
         const historyMatchDate = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const formattedSelectedDate = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -1238,243 +1704,184 @@ const saveWorkout = async () => {
         const totalBurnt = todaysHistory.reduce((sum, h) => sum + (h.burnt || 0), 0);
 
         return (
-          <div style={{padding: '0', minHeight: '100vh', background: COLORS.bg}}>
-            <div style={{padding: '20px 20px 0 20px'}}>
-              <h2 style={{color: COLORS.text, fontSize: '22px', margin: 0, fontWeight: '500'}}>My activity</h2>
+          <div style={{padding:'24px'}} className="fade-up">
+            <div style={{marginBottom:'24px'}}>
+              <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>HISTORY</div>
             </div>
 
-            <div style={{display: 'flex', justifyContent: 'space-around', borderBottom: `1px solid ${COLORS.border}`, marginTop: '20px'}}>
-               {['Day', 'Week', 'Month'].map(tab => (
-                 <div key={tab} onClick={() => setHistoryActiveTab(tab)} style={{padding: '12px 0', borderBottom: historyActiveTab === tab ? `3px solid ${COLORS.primary}` : 'none', color: historyActiveTab === tab ? COLORS.primary : COLORS.textDim, fontWeight: historyActiveTab === tab ? 'bold' : 'normal', cursor: 'pointer', flex: 1, textAlign: 'center'}}>
-                   {tab}
-                 </div>
-               ))}
-            </div>
-
-            <div style={{padding: '20px'}}>
-              {historyActiveTab === 'Day' && (
-                <>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
-                    <span onClick={() => {const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d);}} style={{color: COLORS.textDim, fontSize: '24px', cursor: 'pointer', padding: '10px'}}>{"<"}</span>
-                    <div style={{textAlign: 'center'}}>
-                      <h3 style={{margin: 0, fontSize: '18px', color: COLORS.text, fontWeight: '500'}}>{formattedSelectedDate}</h3>
-                      <span style={{fontSize: '13px', color: COLORS.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '5px'}}>
-                         <LocalFireDepartment style={{fontSize: '16px'}} /> {totalBurnt} kcal burnt
-                      </span>
-                    </div>
-                    <span onClick={() => {const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d);}} style={{color: COLORS.textDim, fontSize: '24px', cursor: 'pointer', padding: '10px'}}>{">"}</span>
-                  </div>
-
-                  {todaysHistory.length === 0 ? (
-                    <div style={{textAlign: 'center', marginTop: '40px', color: COLORS.textDim, fontSize: '14px', lineHeight: '1.6'}}>
-                      <History style={{fontSize: '50px', color: '#222', marginBottom: '10px'}}/>
-                      <p>No activity logged for this date.</p>
-                      <p style={{color: COLORS.primary, cursor: 'pointer', marginTop: '20px', fontWeight: 'bold'}} onClick={() => setActiveTab('gym')}>Log Workout</p>
-                    </div>
-                  ) : todaysHistory.map((h, i) => (
-                    <div key={i} style={{background: COLORS.card, padding: '20px', borderRadius: '15px', marginBottom: '15px', border: `1px solid ${COLORS.border}`}}>
-                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: `1px solid #222`, paddingBottom: '10px'}}>
-                        <strong style={{color: COLORS.text, fontSize: '16px'}}>{h.mode} Workout</strong>
-                        <div style={{textAlign: 'right'}}>
-                          {/* NEW: Timer Display */}
-                          <span style={{color: COLORS.primary, fontSize: '12px', marginRight: '10px'}}>
-                            <Timer style={{fontSize:'14px', verticalAlign:'middle', marginRight:'2px'}}/> 
-                            {Math.floor((h.duration || 0) / 60)}:{String((h.duration || 0) % 60).padStart(2, '0')}
-                          </span>
-                          <span style={{color: COLORS.textDim, fontSize: '12px'}}>{h.exercises ? h.exercises.length : 0} Exercises</span>
-                        </div>
-                      </div>
-                      <ul style={{fontSize: '14px', color: COLORS.textDim, paddingLeft: '0', listStyle: 'none', margin: 0}}>
-                        {/* SAFE MAP: Uses || [] to prevent crashes */}
-                        {(h.exercises || []).map((ex, idx) => (
-                          <li key={idx} style={{marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <div>
-                              <span style={{color: '#fff', fontWeight: 'bold'}}>{ex.name}</span><br/>
-                              <span style={{fontSize: '12px'}}>{ex.sets} Sets x {ex.reps} Reps</span>
-                            </div>
-                            <div style={{color: COLORS.primary, fontWeight: '900', fontSize: '18px'}}>
-                              {ex.weight} <span style={{fontSize: '12px', color: COLORS.textDim}}>kg</span>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </>
-              )}
-
-              {historyActiveTab !== 'Day' && (
-                <div style={{textAlign: 'center', marginTop: '50px', color: COLORS.textDim}}>
-                  <ShowChart style={{fontSize: '50px', color: '#222', marginBottom: '10px'}} />
-                  <p>Graphical overview for {historyActiveTab} coming soon.</p>
+            <div style={{display:'flex',gap:'0',marginBottom:'24px',border:'1px solid #1e1e1e',borderRadius:'10px',overflow:'hidden'}}>
+              {['Day','Week','Month'].map(tab=>(
+                <div key={tab} onClick={()=>setHistoryActiveTab(tab)} style={{flex:1,padding:'12px',textAlign:'center',cursor:'pointer',fontSize:'12px',fontFamily:"'Space Mono',monospace",letterSpacing:'1px',background:historyActiveTab===tab?'#00e676':'transparent',color:historyActiveTab===tab?'#000':'#555',transition:'all 0.2s'}}>
+                  {tab}
                 </div>
-              )}
+              ))}
             </div>
+
+            {historyActiveTab==='Day' && (
+              <>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
+                  <button className="btn-ghost" style={{fontSize:'20px',padding:'8px',color:'#555'}} onClick={()=>{const d=new Date(selectedDate);d.setDate(d.getDate()-1);setSelectedDate(d);}}>←</button>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontSize:'15px',fontWeight:'500'}}>{formattedSelectedDate}</div>
+                    {totalBurnt>0 && <div className="label" style={{marginTop:'4px',color:'#ff6b6b'}}>{totalBurnt} kcal burnt</div>}
+                  </div>
+                  <button className="btn-ghost" style={{fontSize:'20px',padding:'8px',color:'#555'}} onClick={()=>{const d=new Date(selectedDate);d.setDate(d.getDate()+1);setSelectedDate(d);}}>→</button>
+                </div>
+
+                {todaysHistory.length===0?(
+                  <div style={{textAlign:'center',padding:'60px 0',color:'#333'}}>
+                    <History style={{fontSize:'48px',color:'#1a1a1a',marginBottom:'16px'}}/>
+                    <div style={{fontSize:'14px',color:'#444',marginBottom:'16px'}}>No activity logged</div>
+                    <span onClick={()=>setActiveTab('gym')} style={{fontSize:'13px',color:'#fff',cursor:'pointer',textDecoration:'underline',textUnderlineOffset:'3px'}}>Log a workout</span>
+                  </div>
+                ):todaysHistory.map((h,i)=>(
+                  <div key={i} className="card" style={{marginBottom:'12px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',paddingBottom:'14px',borderBottom:'1px solid #111'}}>
+                      <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'20px',letterSpacing:'2px'}}>{h.mode} Workout</div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontFamily:"'Space Mono',monospace",fontSize:'11px',color:'#555'}}>
+                          {Math.floor((h.duration||0)/60)}:{String((h.duration||0)%60).padStart(2,'0')}
+                        </div>
+                        <div className="label" style={{marginTop:'2px'}}>{h.exercises?h.exercises.length:0} exercises</div>
+                      </div>
+                    </div>
+                    {(h.exercises||[]).map((ex,idx)=>(
+                      <div key={idx} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #0d0d0d'}}>
+                        <div>
+                          <div style={{fontSize:'14px',fontWeight:'500'}}>{ex.name}</div>
+                          <div className="label" style={{marginTop:'2px'}}>{ex.sets} sets × {ex.reps} reps</div>
+                        </div>
+                        <div style={{fontFamily:"'Space Mono',monospace",fontSize:'16px',fontWeight:'700'}}>{ex.weight}<span style={{fontSize:'11px',color:'#555',fontWeight:'400'}}> kg</span></div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </>
+            )}
+
+            {historyActiveTab!=='Day' && (
+              <div style={{textAlign:'center',padding:'60px 0',color:'#333'}}>
+                <ShowChart style={{fontSize:'48px',color:'#1a1a1a',marginBottom:'16px'}}/>
+                <div style={{fontSize:'14px',color:'#444'}}>{historyActiveTab} view coming soon</div>
+              </div>
+            )}
           </div>
         );
       })()}
-      {/* --- ADDED: WEEKLY PLANNER TAB --- */}
+      {/* --- WEEKLY PLANNER TAB --- */}
       {view === 'app' && activeTab === 'planner' && (
-        <div style={{padding: '20px'}}>
-          <h2 style={{color: COLORS.primary, fontWeight: '900', textTransform: 'uppercase'}}>Weekly Protocol</h2>
-          
-          {/* FITNESS SCORE & LEVEL CARD */}
-          <div style={{background: 'linear-gradient(135deg, #111 0%, #003311 100%)', padding: '20px', borderRadius: '25px', marginBottom: '25px', border: `1px solid ${COLORS.primary}`}}>
-             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                 <div>
-                     <span style={{fontSize: '12px', color: COLORS.textDim}}>CURRENT RANK</span>
-                     <h3 style={{margin: '0', color: '#fff', textTransform: 'uppercase'}}>{userData.level}</h3>
-                 </div>
-                 <div style={{textAlign: 'right'}}>
-                     <span style={{fontSize: '12px', color: COLORS.textDim}}>FITNESS SCORE</span>
-                     <h3 style={{margin: '0', color: COLORS.primary, fontSize: '24px'}}>{fitnessScore} <span style={{fontSize: '12px'}}>pts</span></h3>
-                 </div>
-             </div>
-             <p style={{fontSize: '11px', color: '#ffd700', marginTop: '15px', fontStyle: 'italic'}}>
-                 {WEEKLY_PLAN[userData.level].nextLevel}
-             </p>
+        <div style={{padding:'24px'}} className="fade-up">
+          <div style={{marginBottom:'24px'}}>
+            <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>PROTOCOL</div>
+            <div className="label" style={{marginTop:'6px'}}>Weekly training plan</div>
           </div>
 
-          <h3 style={{fontSize: '15px', color: COLORS.textDim, marginBottom: '15px'}}>MONDAY - FRIDAY SPLIT</h3>
-          
-          {/* RENDER DAYS */}
-          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => {
-              const dayData = WEEKLY_PLAN[userData.level][day];
-              return (
-                <div key={day} style={{background: COLORS.card, padding: '20px', borderRadius: '20px', marginBottom: '15px', borderLeft: `5px solid ${day === 'Wednesday' ? '#444' : COLORS.primary}`, borderTop: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}`, borderBottom: `1px solid ${COLORS.border}`}}>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
-                      <strong style={{color: day === 'Wednesday' ? COLORS.textDim : COLORS.primary, fontSize: '16px'}}>{day}</strong>
-                      <span style={{fontSize: '11px', background: '#222', padding: '4px 10px', borderRadius: '10px', color: '#fff'}}>{dayData.muscle}</span>
-                  </div>
-                  
-                  <div style={{marginBottom: '10px'}}>
-                      <span style={{fontSize: '11px', color: COLORS.textDim, display: 'block'}}>EXERCISES TO DO:</span>
-                      <span style={{fontSize: '14px', color: '#fff'}}>{dayData.exercises}</span>
-                  </div>
-                  
-                  <div>
-                      <span style={{fontSize: '11px', color: COLORS.textDim, display: 'block'}}>DIET FOCUS:</span>
-                      <span style={{fontSize: '13px', color: '#00d2ff'}}>{dayData.diet}</span>
-                  </div>
+          <div className="card-featured" style={{marginBottom:'20px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div className="label label-white" style={{marginBottom:'4px'}}>Rank</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'24px',letterSpacing:'2px'}}>{userData.level?.toUpperCase()}</div>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div className="label label-white" style={{marginBottom:'4px'}}>Score</div>
+                <div style={{fontFamily:"'Space Mono',monospace",fontSize:'24px',fontWeight:'700'}}>{fitnessScore}</div>
+              </div>
+            </div>
+            <div style={{marginTop:'12px',fontSize:'11px',color:'rgba(0,0,0,0.5)',fontStyle:'italic'}}>{WEEKLY_PLAN[userData.level].nextLevel}</div>
+          </div>
+
+          {['Monday','Tuesday','Wednesday','Thursday','Friday'].map(day=>{
+            const dayData=WEEKLY_PLAN[userData.level][day];
+            const isRest=day==='Wednesday';
+            return(
+              <div key={day} className="card" style={{marginBottom:'10px',borderLeft:`3px solid ${isRest?'#222':'#00e676'}`}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'18px',letterSpacing:'2px',color:isRest?'#555':'#00e676'}}>{day}</div>
+                  <div className="tag" style={{background:isRest?'transparent':'#111'}}>{dayData.muscle}</div>
                 </div>
-              )
+                <div style={{fontSize:'13px',color:'#888',marginBottom:'6px'}}>{dayData.exercises}</div>
+                <div style={{fontSize:'11px',color:'#555',fontFamily:"'Space Mono',monospace"}}>{dayData.diet}</div>
+              </div>
+            );
           })}
         </div>
       )}
-     {/* --- ADDED: AI CHATBOT TAB (FIXED SCROLLING) --- */}
+      {/* --- AI CHATBOT TAB --- */}
       {view === 'app' && activeTab === 'chat' && (
-        <div style={{
-          display: 'flex', 
-          flexDirection: 'column', 
-          position: 'absolute', // Locks the container to the screen
-          top: '70px',          // Sits right below your top header
-          bottom: '80px',       // Sits right above your bottom nav bar
-          left: 0, 
-          right: 0, 
-          padding: '0 20px'
-        }}>
-           <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', flexShrink: 0}}>
-             <SmartToy style={{color: COLORS.primary, fontSize: '28px'}} />
-             <h2 style={{color: COLORS.primary, margin: 0}}>FitAI Coach</h2>
-           </div>
+        <div style={{display:'flex',flexDirection:'column',position:'absolute',top:'61px',bottom:'80px',left:0,right:0,padding:'0 24px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'20px 0 16px',borderBottom:'1px solid #111',flexShrink:0}}>
+            <SmartToy style={{fontSize:'20px',color:'#00e676'}}/>
+            <div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'20px',letterSpacing:'3px'}}>FITAI COACH</div>
+              <div className="label" style={{marginTop:'2px'}}>Powered by Gemini</div>
+            </div>
+          </div>
 
-           {/* CHAT MESSAGES AREA (This will now scroll perfectly!) */}
-           <div style={{flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '10px', scrollbarWidth: 'none'}}>
-             {chatMessages.map((msg, i) => (
-               <div key={i} style={{alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%'}}>
-                 <div style={{
-                   background: msg.role === 'user' ? COLORS.primary : COLORS.card,
-                   color: msg.role === 'user' ? '#000' : '#fff',
-                   padding: '14px 18px',
-                   borderRadius: msg.role === 'user' ? '20px 20px 0 20px' : '20px 20px 20px 0',
-                   border: msg.role === 'ai' ? `1px solid ${COLORS.border}` : 'none',
-                   fontSize: '14px',
-                   lineHeight: '1.5',
-                   boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
-                 }}>
-                   {msg.text}
-                 </div>
-               </div>
-             ))}
-             
-             {/* TYPING INDICATOR */}
-             {isAiTyping && (
-               <div style={{alignSelf: 'flex-start', background: COLORS.card, padding: '14px 18px', borderRadius: '20px 20px 20px 0', border: `1px solid ${COLORS.border}`}}>
-                 <span style={{color: COLORS.primary, fontSize: '12px', fontStyle: 'italic', fontWeight: 'bold'}}>FitAI is typing...</span>
-               </div>
-             )}
-             
-             {/* INVISIBLE ELEMENT TO AUTO-SCROLL TO */}
-             <div ref={chatEndRef} />
-           </div>
+          <div style={{flex:1,overflowY:'auto',display:'flex',flexDirection:'column',gap:'12px',padding:'16px 0',scrollbarWidth:'none'}}>
+            {chatMessages.map((msg,i)=>(
+              <div key={i} className={`chat-bubble ${msg.role==='user'?'user':'ai'}`}>{msg.text}</div>
+            ))}
+            {isAiTyping && (
+              <div className="chat-bubble ai" style={{display:'flex',gap:'6px',alignItems:'center',padding:'16px 20px'}}>
+                <span className="typing-dot" style={{width:'6px',height:'6px',borderRadius:'50%',background:'#555'}}/>
+                <span className="typing-dot" style={{width:'6px',height:'6px',borderRadius:'50%',background:'#555'}}/>
+                <span className="typing-dot" style={{width:'6px',height:'6px',borderRadius:'50%',background:'#555'}}/>
+              </div>
+            )}
+            <div ref={chatEndRef}/>
+          </div>
 
-           {/* MESSAGE INPUT BOX */}
-           <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexShrink: 0}}>
-             <input
-               type="text"
-               value={chatInput}
-               onChange={(e) => setChatInput(e.target.value)}
-               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-               placeholder="Ask about diet, workouts..."
-               style={{flex: 1, background: COLORS.inputBg, color: '#fff', border: `1px solid ${COLORS.border}`, borderRadius: '25px', padding: '15px 20px', outline: 'none', fontSize: '14px'}}
-             />
-             <button onClick={handleSendMessage} style={{background: COLORS.primary, border: 'none', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0}}>
-               <Send style={{color: '#000', fontSize: '20px', marginLeft: '4px'}} />
-             </button>
-           </div>
+          <div style={{display:'flex',gap:'10px',padding:'12px 0',flexShrink:0,borderTop:'1px solid #111'}}>
+            <input type="text" value={chatInput} onChange={(e)=>setChatInput(e.target.value)} onKeyDown={(e)=>e.key==='Enter'&&handleSendMessage()} placeholder="Ask about diet, workouts..." style={{flex:1,borderRadius:'100px !important'}}/>
+            <button onClick={handleSendMessage} style={{background:'#00e676',border:'none',borderRadius:'50%',width:'48px',height:'48px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
+              <Send style={{color:'#000',fontSize:'18px',marginLeft:'2px'}}/>
+            </button>
+          </div>
         </div>
       )}
 
       {/* NAVIGATION */}
       {view === 'app' && (
-        <nav style={{position: 'fixed', bottom: 0, width: '100%', maxWidth: '480px', display: 'flex', justifyContent: 'space-around', background: '#000', padding: '15px 0', borderTop: `1px solid ${COLORS.border}`}}>
-          <button onClick={() => setActiveTab('home')} style={{background: 'none', border: 'none', color: activeTab === 'home' ? COLORS.primary : COLORS.textDim}}><Home /></button>
-          <button onClick={() => setActiveTab('gym')} style={{background: 'none', border: 'none', color: activeTab === 'gym' ? COLORS.primary : COLORS.textDim}}><FitnessCenter /></button>
-          <button onClick={() => setActiveTab('restaurant')} style={{background: 'none', border: 'none', color: activeTab === 'restaurant' ? COLORS.primary : COLORS.textDim}}><Restaurant /></button>
-          <button onClick={() => setActiveTab('history')} style={{background: 'none', border: 'none', color: activeTab === 'history' ? COLORS.primary : COLORS.textDim}}><History /></button>
+        <nav className="bottom-nav">
+          {[
+            {tab:'home',icon:<Home/>,label:'Home'},
+            {tab:'gym',icon:<FitnessCenter/>,label:'Train'},
+            {tab:'restaurant',icon:<Restaurant/>,label:'Nutrition'},
+            {tab:'history',icon:<History/>,label:'Log'},
+          ].map(item=>(
+            <button key={item.tab} className={`nav-btn ${activeTab===item.tab?'active':''}`} onClick={()=>setActiveTab(item.tab)}>
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          ))}
         </nav>
       )}
 
-      {/* --- ADDED: AI FORM TRACKER CAMERA MODAL --- */}
+      {/* --- AI FORM TRACKER MODAL --- */}
       {aiModalOpen && (
-        <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.98)', zIndex: 3000, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px'}}>
+        <div style={{position:'fixed',top:0,left:0,width:'100%',height:'100%',background:'#000',zIndex:3000,display:'flex',flexDirection:'column',alignItems:'center',padding:'20px',overflowY:'auto'}}>
+          <button onClick={handleStopAiTracker} style={{position:'absolute',right:20,top:20,background:'none',border:'none',cursor:'pointer',color:'#ff4444',display:'flex'}}>
+            <Close style={{fontSize:'28px'}}/>
+          </button>
           
-          {/* UPDATED CLOSE BUTTON triggers Auto-Save */}
-          <Close onClick={handleStopAiTracker} style={{position: 'absolute', right: 20, top: 20, color: COLORS.danger, cursor: 'pointer', fontSize: '32px'}} />
+          <div className="display-font" style={{fontSize:'28px',letterSpacing:'4px',marginTop:'12px',marginBottom:'20px',color:'#fff'}}>{activeAiExercise?.name}</div>
           
-          <h2 style={{color: COLORS.primary, marginTop: '10px', fontWeight: '900', textTransform: 'uppercase'}}>{activeAiExercise?.name}</h2>
-          {/* CAMERA FEED & CANVAS OVERLAY CONTAINER */}
-          <div style={{position: 'relative', width: '100%', maxWidth: '400px', height: '400px', background: '#111', borderRadius: '20px', overflow: 'hidden', border: `3px solid ${COLORS.primary}`, boxShadow: `0 0 20px ${COLORS.primary}40`}}>
-            
-            {/* Real Video Feed */}
-            <video ref={videoRef} playsInline muted style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)'}}></video>
-            
-            {/* AI Drawing Layer */}
-            <canvas ref={canvasRef} width="400" height="400" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)'}}></canvas>
-            
-            {/* LIVE OVERLAY METRICS */}
-            <div style={{position: 'absolute', bottom: 15, left: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end'}}>
-              <div style={{background: 'rgba(0,0,0,0.8)', padding: '10px 20px', borderRadius: '15px', border: `1px solid ${COLORS.primary}`}}>
-                <span style={{color: COLORS.textDim, fontSize: '10px', fontWeight: 'bold', display: 'block', letterSpacing: '1px'}}>AUTO REPS</span>
-                <span style={{color: '#fff', fontSize: '38px', fontWeight: '900'}}>{aiReps}</span>
-              </div>
+          <div style={{position:'relative',width:'100%',maxWidth:'380px',aspectRatio:'1',background:'#0a0a0a',borderRadius:'16px',overflow:'hidden',border:'1px solid #1e1e1e'}}>
+            <video ref={videoRef} playsInline muted style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',objectFit:'cover',transform:'scaleX(-1)'}}/>
+            <canvas ref={canvasRef} width="400" height="400" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',objectFit:'cover',transform:'scaleX(-1)'}}/>
+            <div style={{position:'absolute',bottom:16,left:16,background:'rgba(0,0,0,0.9)',border:'1px solid #222',borderRadius:'12px',padding:'12px 20px'}}>
+              <div className="label" style={{marginBottom:'4px'}}>Auto Reps</div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'48px',lineHeight:'1',color:'#fff'}}>{aiReps}</div>
             </div>
           </div>
-          
-          {/* NEW: END & SAVE BUTTON */}
-          <button onClick={handleStopAiTracker} style={{background: COLORS.primary, color: '#000', border: 'none', padding: '10px 30px', borderRadius: '30px', fontWeight: '900', fontSize: '16px', marginBottom: '20px', boxShadow: `0 0 15px ${COLORS.primary}80`}}>
-            <Save style={{verticalAlign: 'middle', marginRight: '5px'}}/> END & AUTO-SAVE
+
+          <button onClick={handleStopAiTracker} className="btn-primary" style={{marginTop:'20px',maxWidth:'380px',width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+            <Save style={{fontSize:'18px'}}/> End & Save Session
           </button>
 
-          {/* NEW: INSTRUCTIONS */}
-          <p style={{color: COLORS.textDim, fontSize: '12px', margin: '0 0 10px 0', textAlign: 'center'}}>Click the button above to end tracking and auto-save your workout.</p>
-          
-          {/* AI VOICE FEEDBACK BOX */}
-          <div style={{background: COLORS.card, width: '100%', maxWidth: '400px', padding: '20px', borderRadius: '20px', marginTop: '20px', border: `1px solid ${COLORS.border}`, textAlign: 'center'}}>
-            <h4 style={{color: COLORS.textDim, margin: '0 0 10px 0', fontSize: '12px', letterSpacing: '1px'}}>AI AUDIO FEEDBACK</h4>
-            <p style={{color: aiFeedback.includes('Arch') ? COLORS.danger : '#ffd700', fontSize: '18px', fontWeight: 'bold', margin: 0}}>
-              {aiFeedback}
-            </p>
+          <div style={{background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:'12px',padding:'16px',marginTop:'16px',width:'100%',maxWidth:'380px',textAlign:'center'}}>
+            <div className="label" style={{marginBottom:'8px'}}>AI Form Feedback</div>
+            <div style={{fontSize:'16px',fontWeight:'600',color:aiFeedback.includes('Arch')?'#ff4444':'#fff'}}>{aiFeedback}</div>
           </div>
         </div>
       )}
