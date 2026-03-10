@@ -7,6 +7,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import {GoogleAuthProvider } from "firebase/auth";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -19,11 +20,13 @@ const firebaseConfig = {
  const app = initializeApp(firebaseConfig);
  const auth = getAuth(app);
  const db = getFirestore(app);
+ const googleProvider = new GoogleAuthProvider();
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   onAuthStateChanged, 
-  signOut 
+  signOut ,
+  signInWithPopup
 } from 'firebase/auth';
 import { 
   doc, 
@@ -1078,6 +1081,39 @@ const saveWorkout = async () => {
       alert("Failed to save food log to database.");
     }
   };
+  // --- ADDED: GOOGLE SIGN-IN LOGIC ---
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const loggedInUser = result.user;
+      
+      // Check if this is a brand new user, so we can set up their default FitAI database document!
+      const userDocRef = doc(db, 'users', loggedInUser.uid);
+      const docSnap = await getDoc(userDocRef);
+      
+      if (!docSnap.exists()) {
+        // If they don't exist in our database yet, create their default profile
+        await setDoc(userDocRef, {
+            email: loggedInUser.email,
+            weight: 0,
+            level: 'Beginner',
+            streak: 0,
+            injuries: [],
+            points: 0,
+            workouts: [],
+            targetWeight: 75,
+            dailyCalsGoal: 2000,
+            waterGlasses: 0,
+            checklist: { water: false, protein: false, stretch: false, sleep: false }
+        });
+      }
+      
+      alert(`Welcome, ${loggedInUser.displayName || "Athlete"}!`);
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      alert(error.message);
+    }
+  };
 
   const handleAuth = async () => {
     try {
@@ -1270,6 +1306,30 @@ const saveWorkout = async () => {
           <button className="btn-primary" onClick={handleAuth}>
             {isLogin ? 'Sign In' : 'Create Account'}
           </button>
+
+          {/* --- ADDED: GOOGLE LOGIN BUTTON --- */}
+              <div style={{textAlign: 'center', margin: '15px 0', color: COLORS.textDim}}>OR</div>
+              
+              <button 
+                onClick={handleGoogleSignIn} 
+                style={{
+                  width: '100%', 
+                  padding: '16px', 
+                  background: '#ffffff', 
+                  color: '#000000', 
+                  fontWeight: 'bold', 
+                  borderRadius: '12px', 
+                  border: '1px solid #ccc',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style={{width: '20px', height: '20px'}} />
+                Sign in with Google
+              </button>
 
           <div style={{marginTop:'24px',textAlign:'center'}}>
             <span style={{color:'#444',fontSize:'13px'}}>
