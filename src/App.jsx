@@ -103,6 +103,68 @@ const WEEKLY_PLAN = {
     nextLevel: "You are at the top level! Keep maintaining your Pro status."
   }
 };
+const SENIOR_EXERCISE_DATA = {
+  home: [
+    { name: "Chair Squats", avoid: ["Knee"], tip: "Sit back slowly into a chair, keep chest up", embedId: "aclHkVaku9U", burn: 4 },
+    { name: "Wall Pushups", avoid: ["Shoulder"], tip: "Stand a step away from wall, push gently", embedId: "IODxDxX7oi4", burn: 3 },
+    { name: "Seated Knee Lifts", avoid: ["Back"], tip: "Sit tall, lift knees towards chest", embedId: "nmwgirgXLYM", burn: 3 },
+    { name: "Glute Bridges", avoid: ["Back"], tip: "Squeeze glutes at the top, gentle pace", embedId: "wPM8icPu6H8", burn: 4 },
+    { name: "Standing Calf Raises", avoid: ["Knee"], tip: "Hold a wall or chair for balance", embedId: "nGaXj3kkmrU", burn: 3 },
+    { name: "Seated Marching", avoid: ["Hip"], tip: "Pump arms and lift knees while seated", embedId: "nmwgirgXLYM", burn: 3 },
+    { name: "Standing Bird Dog", avoid: ["Back"], tip: "Hold a chair, extend opposite arm and leg", embedId: "z6PJMT2y8GQ", burn: 4 },
+    { name: "Overhead Arm Reaches", avoid: ["Shoulder"], tip: "Reach up to the ceiling, alternate arms", embedId: "2yjwxtZ_kNo", burn: 2 },
+    { name: "Single Leg Stand", avoid: ["Knee", "Hip"], tip: "Hold a chair, balance on one leg for time", embedId: "y-wV4Venusw", burn: 2 },
+    { name: "Seated Leg Extensions", avoid: ["Knee"], tip: "Straighten one leg at a time while seated", embedId: "IZxyjW7MPJQ", burn: 3 }
+  ],
+  travel: [
+    { name: "Seated Torso Twists", avoid: ["Back"], tip: "Twist gently side to side, no forcing", embedId: "Xyd_fa5zoEU", burn: 2 },
+    { name: "Shadow Boxing (Light)", avoid: ["Shoulder"], tip: "Gentle punches, keep feet planted", embedId: "7O_L9n2841M", burn: 4 },
+    { name: "Wall Sit (Shallow)", avoid: ["Knee"], tip: "Only go down as far as comfortable", embedId: "y-wV4Venusw", burn: 3 },
+    { name: "Side Leg Raises", avoid: ["Knee", "Hip"], tip: "Hold a chair, lift leg slowly to side", embedId: "z6PJMT2y8GQ", burn: 3 },
+    { name: "Shoulder Rolls", avoid: ["Shoulder"], tip: "Roll shoulders backward gently to open chest", embedId: "2yjwxtZ_kNo", burn: 1 },
+    { name: "Standing Hamstring Curls", avoid: ["Knee"], tip: "Hold a wall, bring heel towards glute", embedId: "wPM8icPu6H8", burn: 3 },
+    { name: "Wall Planks", avoid: ["Shoulder", "Back"], tip: "Lean on a wall, keep body straight and core tight", embedId: "pvIjsGZXp_w", burn: 3 },
+    { name: "Ankle Circles", avoid: [], tip: "Trace a circle with your toes, both directions", embedId: "nGaXj3kkmrU", burn: 1 }
+  ],
+  gym: [
+    { name: "Machine Chest Press", avoid: ["Shoulder"], tip: "Keep back flat against the pad", embedId: "rT7DgCr-3pg", burn: 5 },
+    { name: "Seated Cable Rows", avoid: ["Back"], tip: "Pull to your waist, chest up", embedId: "GZbfZ033f74", burn: 5 },
+    { name: "Leg Press (Light)", avoid: ["Knee"], tip: "Don't lock your knees at the top", embedId: "IZxyjW7MPJQ", burn: 6 },
+    { name: "Dumbbell Bicep Curls", avoid: [], tip: "Use light weight, smooth motion", embedId: "ykJmrZ5v0Oo", burn: 4 },
+    { name: "Tricep Extensions", avoid: ["Shoulder"], tip: "Use light cable weight, full extension", embedId: "nRiJVZDpdL0", burn: 4 },
+    { name: "Lat Pulldown (Light)", avoid: ["Shoulder", "Back"], tip: "Pull bar to chin level, don't lean back", embedId: "CAwf7n6Luuc", burn: 5 },
+    { name: "Seated Dumbbell Press", avoid: ["Shoulder"], tip: "Press straight up, control the descent", embedId: "2yjwxtZ_kNo", burn: 4 },
+    { name: "Machine Leg Extensions", avoid: ["Knee"], tip: "Extend legs fully but don't snap knees", embedId: "IZxyjW7MPJQ", burn: 4 },
+    { name: "Cable Woodchops (Gentle)", avoid: ["Back"], tip: "Rotate from the core, keep arms straight", embedId: "Xyd_fa5zoEU", burn: 5 },
+    { name: "Seated Leg Curls", avoid: ["Knee"], tip: "Squeeze hamstrings at the bottom", embedId: "wPM8icPu6H8", burn: 5 }
+  ]
+};
+const SENIOR_WEEKLY_PLAN = {
+  beginner: {
+    Monday: { muscle: "Full Body Mobility", diet: "Balanced, Hydration Focus", exercises: "Chair Squats, Seated Knee Lifts" },
+    Tuesday: { muscle: "Balance & Core", diet: "High Fiber, Lean Protein", exercises: "Single Leg Stand, Standing Bird Dog" },
+    Wednesday: { muscle: "Active Recovery", diet: "Maintenance Calories", exercises: "Light Walking, Gentle Stretching" },
+    Thursday: { muscle: "Upper Body Light", diet: "Protein Rich (Bone Health)", exercises: "Wall Pushups, Overhead Reaches" },
+    Friday: { muscle: "Lower Body Light", diet: "Healthy Carbs & Omega-3s", exercises: "Chair Squats, Standing Calf Raises" },
+    nextLevel: "Reach 500 Fitness Points to unlock Intermediate Phase."
+  },
+  intermediate: {
+    Monday: { muscle: "Upper Body Strength", diet: "High Protein, Calcium Rich", exercises: "Machine Chest Press, Seated Rows" },
+    Tuesday: { muscle: "Lower Body Strength", diet: "Balanced Macros", exercises: "Leg Press (Light), Leg Extensions" },
+    Wednesday: { muscle: "Active Recovery", diet: "High Fiber", exercises: "Yoga, Swimming, or Walking" },
+    Thursday: { muscle: "Core & Stability", diet: "Nutrient Dense", exercises: "Wall Planks, Glute Bridges" },
+    Friday: { muscle: "Full Body Flow", diet: "High Protein", exercises: "Dumbbell Curls, Chair Squats" },
+    nextLevel: "Reach 1500 Fitness Points to unlock Pro Phase."
+  },
+  pro: {
+    Monday: { muscle: "Push Focus (Controlled)", diet: "Protein & Joint-Supporting Fats", exercises: "Chest Press, Tricep Ext" },
+    Tuesday: { muscle: "Pull Focus (Controlled)", diet: "Balanced, Anti-inflammatory", exercises: "Seated Rows, Lat Pulldowns" },
+    Wednesday: { muscle: "Active Recovery", diet: "Maintenance Calories", exercises: "Light Cardio, Deep Stretching" },
+    Thursday: { muscle: "Leg Focus (Stability)", diet: "Healthy Carbs for Energy", exercises: "Leg Press, Hamstring Curls" },
+    Friday: { muscle: "Conditioning & Core", diet: "High Protein", exercises: "Shadow Boxing, Side Leg Raises" },
+    nextLevel: "You are at the top level! Keep maintaining your Pro status."
+  }
+};
 
 const MOTIVATION_QUOTES = [
   "Sweat is just fat crying. Keep it up!",
@@ -862,7 +924,7 @@ export default function App() {
   const [historyActiveTab, setHistoryActiveTab] = useState('Day');
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  const [userData, setUserData] = useState({ name: "", weight: "", height: "", injuries: [], level: "beginner", streak: 0 });
+  const [userData, setUserData] = useState({ name: "", weight: "", height: "", age: "", injuries: [], level: "beginner", streak: 0 });
   const [targetWeight, setTargetWeight] = useState(75);
   const [dailyCalsGoal, setDailyCalsGoal] = useState(2500); // ADDED: For Smart Goals
   
@@ -899,7 +961,9 @@ export default function App() {
     return "2 Sets × 8-10 Reps";
   };
 
-  const filteredEx = EXERCISE_DATA[gymMode].filter(ex => !ex.avoid.some(i => userData.injuries.includes(i)));
+ // Check if age is 60 or older. If yes, use SENIOR data, else use REGULAR data.
+  const activeExerciseDb = (userData.age >= 60) ? SENIOR_EXERCISE_DATA : EXERCISE_DATA;
+  const filteredEx = activeExerciseDb[gymMode].filter(ex => !ex.avoid.some(i => userData.injuries.includes(i)));
   const todaysCalsIntake = foodJournal.filter(f => f.date === today).reduce((sum, f) => sum + f.kcal, 0);
   const todaysCalsBurnt = history.filter(h => h.date === today).reduce((sum, h) => sum + (h.burnt || 0), 0);
 
@@ -1024,14 +1088,42 @@ const saveWorkout = async () => {
       // 2. Initialize the AI (You will paste your free key here)
       const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY); 
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      //  Grab the correct database based on age
+      const activeDb = (userData.age >= 60) ? SENIOR_EXERCISE_DATA : EXERCISE_DATA;
+      
+      //  Create a flat, comma-separated list of every exercise name in that database
+      const availableExercises = [
+        ...activeDb.home.map(e => e.name),
+        ...activeDb.travel.map(e => e.name),
+        ...activeDb.gym.map(e => e.name)
+      ].join(', ');
+      const userPBs = Object.keys(pbs).length > 0 ? JSON.stringify(pbs) : 'No past exercise data yet.';
+
+      // --- ADDED: GRAB TODAY'S PLANNER SCHEDULE ---
+      const currentDayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      const activeWeeklyPlan = (userData.age >= 60) ? SENIOR_WEEKLY_PLAN : WEEKLY_PLAN;
+      // Look up today's plan based on the user's level. If it's a weekend, default to Rest.
+      const todaysPlan = activeWeeklyPlan[userData.level]?.[currentDayName];
+      
+      const todaysPlanText = todaysPlan 
+        ? `${currentDayName}: ${todaysPlan.muscle} focus. Suggested Exercises: ${todaysPlan.exercises}. Diet: ${todaysPlan.diet}`
+        : `${currentDayName}: Rest/Recovery day or Freestyle.`;
 
       // 3. THE MAGIC: Feed the user's live database stats into the AI's brain!
       const contextPrompt = `
-        You are FitAI, an elite, highly motivating personal trainer. 
-        Keep your answers concise, friendly, and under 3 sentences. 
-        
+        You are FitAI, an elite, highly knowledgeable personal trainer. Use bullet points when necessary.
+        Provide direct, highly actionable, and specific fitness/nutrition advice.
+        If you suggest a workout or an exercise, YOU MUST ONLY choose from this exact list: [${availableExercises}]. 
+        Do not use fluff, do not repeat yourself, and answer the user's exact question immediately.
+        NEVER suggest an exercise that is not on that list. If they ask for an exercise not on the list, tell them to choose the closest alternative from the list.
+        IF THE USER ASKS HOW MUCH WEIGHT TO LIFT, YOU MUST GIVE A SPECIFIC NUMBER IN KG. 
+           - Look at their Personal Bests below. If they have a PB for the exercise, suggest 2.5kg heavier than their PB for progressive overload.
+           - If they do NOT have a PB for it, estimate a safe specific starting weight in kg based on their body weight (${userData.weight}kg), age (${userData.age}), and level (${userData.level}).
+            Do not say "pick a comfortable weight"—give an exact number like "Start with 15kg".
+
         Here is your client's live data from the app database right now:
         - Name: ${userData.name || 'My friend'}
+        - Age: ${userData.age || 'Not provided'}
         - Current Weight: ${userData.weight || 0} kg
         - Goal Weight: ${targetWeight} kg
         - Experience Level: ${userData.level}
@@ -1056,6 +1148,24 @@ const saveWorkout = async () => {
     }
     
     setIsAiTyping(false);
+
+    // 6. Initialize the model WITH its permanent personality
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        systemInstruction: systemInstruction 
+      });
+
+      // 7. Format the previous messages so the AI remembers the conversation
+      // We skip the first welcome message to avoid confusing the API roles
+      const formattedHistory = chatMessages.slice(1).map(msg => ({
+        role: msg.role === 'ai' ? 'model' : 'user',
+        parts: [{ text: msg.text }]
+      }));
+
+      // 8. Start a continuous chat session
+      const chat = model.startChat({
+        history: formattedHistory
+      });
   };
 
   // --- ADDED: SAVE FOOD LOG TO FIREBASE ---
@@ -1096,6 +1206,7 @@ const saveWorkout = async () => {
         await setDoc(userDocRef, {
             email: loggedInUser.email,
             weight: 0,
+            age: 0,
             level: 'Beginner',
             streak: 0,
             injuries: [],
@@ -1357,6 +1468,7 @@ const saveWorkout = async () => {
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             <input placeholder="Your name" onChange={(e)=>setUserData({...userData,name:e.target.value})}/>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              <input placeholder="Age" type="number" value={userData.age || ''} onChange={(e)=>setUserData({...userData,age:parseInt(e.target.value)||0})}/>
               <input placeholder="Weight (kg)" type="number" onChange={(e)=>setUserData({...userData,weight:parseFloat(e.target.value)})}/>
               <input placeholder="Height (cm)" type="number" onChange={(e)=>setUserData({...userData,height:e.target.value})}/>
             </div>
@@ -1654,6 +1766,10 @@ const saveWorkout = async () => {
             <div className="display-font" style={{fontSize:'40px',letterSpacing:'3px'}}>PROFILE</div>
             <div className="label" style={{marginTop:'6px'}}>Update your stats</div>
           </div>
+          <div className="card">
+              <div className="label" style={{marginBottom:'10px'}}>Age</div>
+              <input type="number" value={userData.age} onChange={(e)=>setUserData({...userData,age:parseInt(e.target.value)||0})}/>
+            </div>
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             <div className="card">
               <div className="label" style={{marginBottom:'10px'}}>Weight (kg)</div>
@@ -1851,7 +1967,8 @@ const saveWorkout = async () => {
           </div>
 
           {['Monday','Tuesday','Wednesday','Thursday','Friday'].map(day=>{
-            const dayData=WEEKLY_PLAN[userData.level][day];
+            const activePlan = userData.age >= 60 ? SENIOR_WEEKLY_PLAN : WEEKLY_PLAN;
+            const dayData=activePlan[userData.level][day];
             const isRest=day==='Wednesday';
             return(
               <div key={day} className="card" style={{marginBottom:'10px',borderLeft:`3px solid ${isRest?'#222':'#00e676'}`}}>
