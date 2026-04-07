@@ -593,31 +593,42 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        // Fetch User Data
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setUserData(prev => ({
-            ...(data.profile || prev),
+          
+          // THE FIX: Overwrite completely. DO NOT merge with "prev"!
+          setUserData({
+            name: data.profile?.name || data.name || "Athlete",
+            weight: data.profile?.weight || 0,
+            height: data.profile?.height || 0,
+            age: data.profile?.age || 0,
+            injuries: data.profile?.injuries || [],
+            level: data.profile?.level || "beginner",
             streak: data.streak || 0,
-            lastWorkoutDate: data.lastWorkoutDate || null
-          }));
+            lastWorkoutDate: data.lastWorkoutDate || null,
+            lastWeight: data.profile?.lastWeight || 0
+          });
+          
           setFitnessScore(data.fitnessScore || 0);
           setPbs(data.pbs || {});
           setTargetWeight(data.targetWeight || 75);
           setDailyCalsGoal(data.dailyCalsGoal || 2500);
           
-          // Reset daily trackers if it's a new day
           if (data.lastLoginDate !== today) {
             setWaterGlasses(0);
             setChecklist({ water: false, stretch: false, workout: false });
-            await updateDoc(doc(db, 'users', currentUser.uid), { lastLoginDate: today });
+            await updateDoc(doc(db, 'users', currentUser.uid), { 
+              lastLoginDate: today,
+              waterGlasses: 0,
+              checklist: { water: false, stretch: false, workout: false }
+            });
           } else {
             setWaterGlasses(data.waterGlasses || 0);
             setChecklist(data.checklist || { water: false, stretch: false, workout: false });
           }
           
-          // Fetch History & Food (Simplified for brevity)
           const historySnap = await getDocs(query(collection(db, 'users', currentUser.uid, 'history'), orderBy('timestamp', 'desc')));
           setHistory(historySnap.docs.map(d => d.data()));
           
@@ -626,7 +637,7 @@ export default function App() {
           
           setView('app');
         } else {
-          setView('onboarding'); // New user needs setup
+          setView('onboarding');
         }
       } else {
         setUser(null);
@@ -1192,30 +1203,34 @@ const saveWorkout = async () => {
     }
   };
   // --- ADDED: GOOGLE SIGN-IN LOGIC ---
-  const handleGoogleSignIn = async () => {
+ const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const loggedInUser = result.user;
       
-      // Check if this is a brand new user, so we can set up their default FitAI database document!
       const userDocRef = doc(db, 'users', loggedInUser.uid);
       const docSnap = await getDoc(userDocRef);
       
       if (!docSnap.exists()) {
-        // If they don't exist in our database yet, create their default profile
+        // Create a perfectly formatted blank slate for Google users
         await setDoc(userDocRef, {
+            name: loggedInUser.displayName || "Athlete",
             email: loggedInUser.email,
-            weight: 0,
-            age: 0,
-            level: 'Beginner',
-            streak: 0,
-            injuries: [],
-            points: 0,
-            workouts: [],
+            profile: {
+                name: loggedInUser.displayName || "Athlete",
+                weight: 0,
+                height: 0,
+                age: 0,
+                level: 'beginner',
+                streak: 0,
+                injuries: []
+            },
+            fitnessScore: 0,
             targetWeight: 75,
             dailyCalsGoal: 2000,
             waterGlasses: 0,
-            checklist: { water: false, protein: false, stretch: false, sleep: false }
+            checklist: { water: false, stretch: false, workout: false },
+            lastLoginDate: new Date().toDateString()
         });
       }
       
@@ -1241,20 +1256,26 @@ const saveWorkout = async () => {
   const handleLogout = async () => {
     await signOut(auth);
     setMenuOpen(false);
+    window.location.reload();
   };
   const saveProfile = async () => {
     if (!user) return;
     try {
       await setDoc(doc(db, 'users', user.uid), {
+        name: userData.name || "Athlete",
+        email: user.email || "",
         profile: userData,
-        fitnessScore,
-        targetWeight,
-        dailyCalsGoal,
-        lastLoginDate: today,
-      }, { merge: true });
+        fitnessScore: 0, // Hardcoded to 0!
+        waterGlasses: 0,
+        targetWeight: targetWeight,
+        dailyCalsGoal: dailyCalsGoal,
+        checklist: { water: false, stretch: false, workout: false },
+        lastLoginDate: new Date().toDateString(),
+      });
       setView('app');
     } catch (error) {
       console.error("Error saving profile", error);
+      alert("Error saving profile. Check console.");
     }
   };
   // --- ADDED: SAVE PROFILE & TRACK WEIGHT CHANGES ---
